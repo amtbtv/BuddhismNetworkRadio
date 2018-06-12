@@ -1,0 +1,16 @@
+{
+	"data": {
+		"apkUrl": "http://amtb.sfzd5.com/amtb.apk",
+		"appName": "儒釋道網絡電視台",
+		"fileSize": 4341626,
+		"isForce": 0,
+		"md5": "69c8e22831755f12c3fb9b2b47c7a795",
+		"packageName": "com.jianchi.fsp.buddhismnetworkradio",
+		"upgradeNotes": "更新內容\n1.修正音頻點播更换节目出错的問題\n2.用API加载音频，实现内容自动更新\n3.添加完善下载音频功能",
+		"upgradeTitle": "儒釋道網絡電視台",
+		"versionCode": 10,
+		"versionName": "3.0.1"
+	},
+	"message": "",
+	"status": 1
+}
