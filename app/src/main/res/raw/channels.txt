@@ -1,0 +1,33 @@
+[{
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=livetv&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/livetv/playlist.m3u8",
+	"title": "直播台"
+}, {
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=masterck&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/masterck/playlist.m3u8",
+	"title": "净空老法师"
+}, {
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=cult&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/wdmaster/playlist.m3u8",
+	"title": "悟道法师"
+}, {
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=cult&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/cult/playlist.m3u8",
+	"title": "多元文化"
+}, {
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=yueyu&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/yueyu/playlist.m3u8",
+	"title": "粵語頻道"
+}, {
+	"listUrl": "http://tw4.hwadzan.com/mycalendar/mycalendar_embed.php?calendar_name=English&showview=day&valign=true&showtimecolumns=start",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/English/playlist.m3u8",
+	"title": "English"
+}, {
+	"listUrl": "http://edu.hwadzan.com/public/images/sanshi.png",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/sanshi_720p/playlist.m3u8",
+	"title": "繫念法会"
+}, {
+	"listUrl": "http://edu.hwadzan.com/public/images/amtb.png",
+	"tvUrl": "http://amtbsg.cloudapp.net/redirect/liveedge/_definst_/amtb/playlist.m3u8",
+	"title": "网路念佛堂"
+}]

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#009688</color>
+    <color name="colorPrimaryDark">#00796b</color>
+    <color name="colorAccent">#00BFA5</color>
+
+    <color name="colorTitle">#ffffff</color>
+    <color name="videoMsg">#ffffff</color>
+    <color name="videoMsgBG">#55888888</color>
+    <color name="programTypeBG">#88CCCCCC</color>
+    <color name="videoBG">#000000</color>
+    <color name="videoMenuBG">#22222222</color>
+</resources>

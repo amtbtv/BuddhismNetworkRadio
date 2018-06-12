@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.jianchi.fsp.buddhismnetworkradio">
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- - 获取通话状态，以便调整播放器 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- - 横屏竖屏转化时用到 -->
+    <uses-permission
+        android:name="android.permission.CHANGE_CONFIGURATION"
+        tools:ignore="ProtectedPermissions" />
+    <!-- - 隐藏状态栏 -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:name=".BApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".activity.MainActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+        <activity
+            android:name=".activity.StartActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.ContactActivity"
+            android:label="@string/lxwm"
+            android:parentActivityName=".activity.StartActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.NewsActivity"
+            android:label="@string/zxxx"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.ScheduleActivity"
+            android:label="@string/jmlb"
+            android:parentActivityName=".activity.StartActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.Mp3PlayerActivity"
+            android:label="@string/title_activity_mp3_player"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.Mp3ManagerActivity"
+            android:label="@string/title_activity_mp3_manager"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.DownLoadActivity"
+            android:label="@string/title_activity_down_load"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.PickDownloadFolderActivity"
+            android:label="@string/title_activity_pick_download_folder"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.SelectProgramActivity"
+            android:label="@string/title_activity_select_program"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.DownloadSettingActivity"
+            android:label="@string/title_activity_download_setting"></activity>
+    </application>
+
+</manifest>
