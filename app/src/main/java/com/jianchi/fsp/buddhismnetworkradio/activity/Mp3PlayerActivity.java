@@ -1,11 +1,12 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
-import android.content.IntentFilter;
+import android.app.Service;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.ExpandableListView;
@@ -18,17 +19,14 @@ import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.AudioPlayer;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.Constant;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.MediaNotificationManager;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Receiver;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
 import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
 import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaList;
 import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListItem;
 import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.VolListItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +35,7 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
     AudioPlayer audioPlayer;
     MediaNotificationManager mediaNotificationManager;
-    Mp3Receiver mp3Receiver;
+    //Mp3Receiver mp3Receiver;
 
     ExpandableListView lv;
     Mp3ListAdapter mp3ListAdapter;
@@ -114,28 +112,6 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         }
     };
 
-    Mp3Receiver.EventListener mp3RecevierEventListener = new Mp3Receiver.EventListener() {
-        @Override
-        public void actionToPause() {
-            audioPlayer.pause();
-        }
-    };
-
-    private void registerMp3Receiver(){
-        //通知广播
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Constant.PLAY_STOP_BUTTON);
-        registerReceiver(mp3Receiver, intentFilter);
-
-        //来电广播
-        IntentFilter phoneStateIntentFilter = new IntentFilter();
-        phoneStateIntentFilter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        registerReceiver(mp3Receiver, phoneStateIntentFilter);
-    }
-    private void unregisterMp3Receiver(){
-        unregisterReceiver(mp3Receiver);
-    }
-
     class LoadMediaListResult extends AsyncTask<Integer, Integer, MediaListResult> {
         int volidIdx;
         int volid;
@@ -199,9 +175,13 @@ public class Mp3PlayerActivity extends AppCompatActivity {
                 lv.expandGroup(volidIdx);
 
                 if (toPlay) {
-                    MediaListItem mediaListItem = mediaList.getItem().get(mp3Program.curMediaIdx);
-                    String url = makeMp3Url(mediaListItem.getFileurl());
-                    audioPlayer.play(url, mp3Program.postion);
+                    if(mediaList.getItem().size()>mp3Program.curMediaIdx) {
+                        MediaListItem mediaListItem = mediaList.getItem().get(mp3Program.curMediaIdx);
+                        String url = makeMp3Url(mediaListItem.getFileurl());
+                        audioPlayer.play(url, mp3Program.postion);
+                    } else {
+                        Toast.makeText(Mp3PlayerActivity.this, R.string.load_fail_reload, Toast.LENGTH_LONG).show();
+                    }
                     mp3ListAdapter.notifyDataSetChanged();
                 }
             }
@@ -233,16 +213,19 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         setTitle(TW2CN.getInstance(this).toLocal(mp3Program.programListItem.getLecturename()));
 
         app = (BApplication)getApplication();
+
+        //用于异步回调
+        handler = new Handler();
+
         if(app.isNetworkConnected()){
-            //用于异步回调
-            handler = new Handler();
 
             audioPlayer = new AudioPlayer(this, audioPlayerEventListener);
-            mp3Receiver = new Mp3Receiver(mp3RecevierEventListener);
-            registerMp3Receiver();
             mediaNotificationManager = new MediaNotificationManager(this);
 
             playerControlView.setPlayer(audioPlayer.getPlayer());
+
+            TelephonyManager tm = (TelephonyManager)getSystemService(Service.TELEPHONY_SERVICE);
+            tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
 
             //载入数据并播放
             new LoadMediaListResult(mp3Program.curVolIdx, mp3Program.curVol, true).execute();
@@ -251,6 +234,34 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         }
 
     }
+
+    boolean waitPhoneIdleToPlaye = false;
+    PhoneStateListener listener=new PhoneStateListener(){
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            //注意，方法必须写在super方法后面，否则incomingNumber无法获取到值。
+            super.onCallStateChanged(state, incomingNumber);
+            switch(state){
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if(waitPhoneIdleToPlaye){
+                        audioPlayer.play();
+                    }
+                    break;
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    System.out.println("接听");
+                    break;
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if(audioPlayer!=null && audioPlayer.isPlaying()){
+                        waitPhoneIdleToPlaye = true;
+                        audioPlayer.pause();
+                    } else {
+                        waitPhoneIdleToPlaye = false;
+                    }
+                    //输出来电号码
+                    break;
+            }
+        }
+    };
 
     ExpandableListView.OnGroupClickListener groupClickListener = new ExpandableListView.OnGroupClickListener() {
         @Override
@@ -302,11 +313,13 @@ public class Mp3PlayerActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         //保存进度
-        audioPlayer.stop();
-        audioPlayer.release();
-        unregisterMp3Receiver();
-        mediaNotificationManager.stopNotification();
-        saveMp3Program();
+        if(audioPlayer!=null) {
+            audioPlayer.stop();
+            audioPlayer.release();
+            //unregisterMp3Receiver();
+            mediaNotificationManager.stopNotification();
+            saveMp3Program();
+        }
     }
 
     /**

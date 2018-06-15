@@ -9,7 +9,7 @@ import android.content.Intent;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.activity.StartActivity;
 
-import static com.jianchi.fsp.buddhismnetworkradio.mp3.Constant.StartWith_MP3_SERVICE;
+//import static com.jianchi.fsp.buddhismnetworkradio.mp3.Constant.StartWith_MP3_SERVICE;
 
 public class MediaNotificationManager {
     Context context;
@@ -28,7 +28,7 @@ public class MediaNotificationManager {
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         intent.setAction(Intent.ACTION_MAIN);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-        intent.putExtra("StartWith", StartWith_MP3_SERVICE);
+        //intent.putExtra("StartWith", StartWith_MP3_SERVICE);
         contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
     }
 

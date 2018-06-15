@@ -454,8 +454,13 @@ public class DownLoadActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(MediaListResult... values) {
             super.onProgressUpdate(values);
-            proBar.setMax(size);
-            proBar.setProgress(idx);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    proBar.setMax(size);
+                    proBar.setProgress(idx);
+                }
+            });
         }
 
         @Override

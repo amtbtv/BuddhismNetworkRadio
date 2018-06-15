@@ -79,6 +79,7 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
 
         tv_location = (TextView) findViewById(R.id.fp_tv_location);
 
+        foldersList = new ArrayList<>();
         loadLists(location);
 
         listView.setAdapter(folderAdapter);
@@ -97,27 +98,23 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
 
     //载入列表
     void loadLists(String location) {
-        try {
-            File folder = new File(location);
-            if (!folder.isDirectory())
-                exit();
+        File folder = new File(location);
+        if (!folder.isDirectory())
+            exit();
+        tv_location.setText(folder.getAbsolutePath());
 
-            tv_location.setText(folder.getAbsolutePath());
-            File[] files = folder.listFiles();
-            foldersList = new ArrayList<>();
-            for (File currentFile : files) {
-                if (currentFile.isDirectory()) {
-                    foldersList.add(currentFile.getName());
-                }
+        foldersList.clear();
+        folderAdapter.notifyDataSetChanged();
+
+        File[] files = folder.listFiles();
+        for (File currentFile : files) {
+            if (currentFile.isDirectory()) {
+                foldersList.add(currentFile.getName());
             }
-            Collections.sort(foldersList, comparatorAscending);
-            folderAdapter.notifyDataSetChanged();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-    } // load List
+        Collections.sort(foldersList, comparatorAscending);
+        folderAdapter.notifyDataSetChanged();
+    }
 
     //排序
     Comparator<String> comparatorAscending = new Comparator<String>() {
@@ -195,7 +192,10 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
     class FolderAdapter extends BaseAdapter{
         @Override
         public int getCount() {
-            return foldersList.size();
+            if(foldersList==null)
+                return 0;
+            else
+                return foldersList.size();
         }
 
         @Override

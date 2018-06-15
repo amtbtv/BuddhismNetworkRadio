@@ -99,4 +99,5 @@
     <string name="bt_del_selected">刪除選中</string>
     <string name="stop_to_remove">刪除下載任務必須先停止下載</string>
     <string name="load_download_list_over">添加MP3 %d 个，请点选下载。</string>
+    <string name="load_fail_reload">載入數據出錯，請重新打開</string>
 </resources>
