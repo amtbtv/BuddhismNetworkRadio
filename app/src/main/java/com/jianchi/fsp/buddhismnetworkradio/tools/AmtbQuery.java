@@ -17,12 +17,14 @@ import java.util.List;
 //返回值有可能是null
 public class AmtbQuery {
 
-    static OkHttpClient client;
+    static CacheOKHttp cacheOKHttp;
     static GsonXml gsonXml;
 
-    static {
-        client = new OkHttpClient();
+    public static void initOkHttpClient(CacheOKHttp http){
+        cacheOKHttp = http;
+    }
 
+    static {
         XmlParserCreator parserCreator = new XmlParserCreator() {
             @Override
             public XmlPullParser createParser() {
@@ -96,6 +98,7 @@ public class AmtbQuery {
         return mediaListResult;
     }
 
+    /*
     private static String downHtml(String url){
         String xmlStr = "";
         OkHttpClient client = new OkHttpClient();
@@ -115,9 +118,9 @@ public class AmtbQuery {
 
         return xmlStr;
     }
-
+*/
     public static <T> T query(String urlStr, Class<T> clazz) {
-        String xml = downHtml(urlStr);
+        String xml = cacheOKHttp.takeXML(urlStr);
         if(xml.isEmpty()){
             return null;
         } else {

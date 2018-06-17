@@ -7,6 +7,8 @@ import android.net.NetworkInfo;
 
 import com.beardedhen.androidbootstrap.TypefaceProvider;
 import com.jianchi.fsp.buddhismnetworkradio.db.DBHelper;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
+import com.jianchi.fsp.buddhismnetworkradio.tools.CacheOKHttp;
 import com.tencent.bugly.Bugly;
 
 /**
@@ -17,6 +19,8 @@ public class BApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        AmtbQuery.initOkHttpClient(new CacheOKHttp(this));
 
         //腾讯错误收集和自动升级服务注册
         Bugly.init(getApplicationContext(), "c833a75af3", false);
@@ -29,11 +33,14 @@ public class BApplication extends Application {
 
     /**
      * 检测网络是否可用
-     * @return
+     * @return boolean
      */
     public boolean isNetworkConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo ni = cm.getActiveNetworkInfo();
+        NetworkInfo ni = null;
+        if (cm != null) {
+            ni = cm.getActiveNetworkInfo();
+        }
         return ni != null && ni.isConnected();
     }
 }
