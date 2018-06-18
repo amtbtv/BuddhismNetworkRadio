@@ -83,6 +83,7 @@
         <activity
             android:name=".activity.DownloadSettingActivity"
             android:label="@string/title_activity_download_setting"></activity>
+
     </application>
 
 </manifest>

@@ -1,11 +1,15 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -16,13 +20,16 @@ import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.UUID;
 
 public class ContactActivity extends AppCompatActivity {
 
+    private static final int SDCARD_PERMISSION = 3655;
     BootstrapLabel version;
 
     BootstrapButton bt_site;
@@ -93,34 +100,57 @@ public class ContactActivity extends AppCompatActivity {
         bt_invite_friends.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //分享信息
-                File initDir = getDiskCacheDir("init");
-                if(!initDir.exists()){
-                    initDir.mkdir();
-                }
-                File paper = new File(initDir, "paper.png");
-                if(!paper.exists()){
-                    try {
-                        InputStream in = getResources().openRawResource(R.raw.amtbpng);
-                        FileOutputStream out = new FileOutputStream(paper);
-                        copyFile(in, out);
-                        in.close();
-                        out.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    shareImage();
+                } else {
+                    if(checkStoragePermission()) {
+                        shareImage();
+                    } else {
+                        requestStoragePermission();
                     }
                 }
-                Uri imageUri = Uri.fromFile(paper);
-                Intent shareIntent = new Intent();
-                shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.setType("image/*");
-                shareIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
-                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-                shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.app_name)));
             }
         });
 
+    }
+
+    void shareImage() {
+        //分享信息
+        File initDir = new File(getCacheDir(), "init");
+        if (!initDir.exists()) {
+            initDir.mkdir();
+        }
+        File paper = new File(initDir, "paper.png");
+        if (!paper.exists()) {
+            try {
+                InputStream in = getResources().openRawResource(R.raw.amtbpng);
+                FileOutputStream out = new FileOutputStream(paper);
+                copyFile(in, out);
+                in.close();
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Uri imageUri = null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            imageUri = Uri.fromFile(paper);
+        } else {
+            try {
+                String murl = MediaStore.Images.Media.insertImage(getContentResolver(), paper.getAbsolutePath(), UUID.randomUUID().toString() + ".png", "图片: " + paper.getName());
+                imageUri = Uri.parse(murl);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.setType("image/*");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
+        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+        shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.app_name)));
     }
 
     public void copyFile(InputStream in, OutputStream out) throws IOException {
@@ -131,16 +161,6 @@ public class ContactActivity extends AppCompatActivity {
         }
     }
 
-    public File getDiskCacheDir(String uniqueName) {
-        String cachePath;
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable()) {
-            cachePath = getExternalCacheDir().getPath();
-        } else {
-            cachePath = getCacheDir().getPath();
-        }
-        return new File(cachePath + File.separator + uniqueName);
-    }
         /**
          * 获取当前APP版本号
          * @return
@@ -164,5 +184,35 @@ public class ContactActivity extends AppCompatActivity {
         Uri uri = Uri.parse(url);
         Intent it = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(it);
+    }
+
+
+    void requestStoragePermission() {
+        if (!checkStoragePermission()) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    SDCARD_PERMISSION);
+        }
+    }
+
+    boolean checkStoragePermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case SDCARD_PERMISSION: {
+                shareImage();
+                return;
+            }
+        }
     }
 }
