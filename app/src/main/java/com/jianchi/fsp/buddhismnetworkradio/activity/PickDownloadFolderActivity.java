@@ -30,7 +30,9 @@ import java.util.Comparator;
 public class PickDownloadFolderActivity extends AppCompatActivity {
 
     ArrayList<String> foldersList;
-    String location = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+    File rootDir = Environment.getExternalStorageDirectory();
+    File location;
     TextView tv_location;
 
     FolderAdapter folderAdapter;
@@ -72,7 +74,7 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                location = location + File.separator + foldersList.get(position);
+                location = new File(location, foldersList.get(position));
                 loadLists(location);
             }
         });
@@ -80,6 +82,7 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
         tv_location = (TextView) findViewById(R.id.fp_tv_location);
 
         foldersList = new ArrayList<>();
+        location = rootDir;
         loadLists(location);
 
         listView.setAdapter(folderAdapter);
@@ -97,11 +100,12 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
     }
 
     //载入列表
-    void loadLists(String location) {
-        File folder = new File(location);
+    void loadLists(File location) {
+        File folder = location;
         if (!folder.isDirectory())
             exit();
-        tv_location.setText(folder.getAbsolutePath());
+
+        tv_location.setText("Path: "+folder.getAbsolutePath().substring(rootDir.getAbsolutePath().length()));
 
         foldersList.clear();
         folderAdapter.notifyDataSetChanged();
@@ -126,10 +130,8 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
 
     //返回上一级
     public void goBack() {
-        if (location != null && !location.equals("") && !location.equals("/")) {
-            int start = location.lastIndexOf('/');
-            String newLocation = location.substring(0, start);
-            location = newLocation;
+        if(location.getParentFile().getAbsolutePath().startsWith(rootDir.getAbsolutePath())){
+            location = location.getParentFile();
             loadLists(location);
         }
     }

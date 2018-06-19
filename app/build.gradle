@@ -7,8 +7,8 @@ android {
         applicationId "com.jianchi.fsp.buddhismnetworkradio"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 13
-        versionName '3.0.4'
+        versionCode 14
+        versionName '3.0.5'
         ndk {
             //设置支持的SO库架构
             abiFilters 'armeabi', 'x86' //, 'armeabi-v7a', 'x86_64', 'arm64-v8a'
