@@ -186,7 +186,7 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
     //确定按扭被点击
     public void select() {
         Intent receivedIntent = getIntent();
-        receivedIntent.putExtra("data", location);
+        receivedIntent.putExtra("data", location.getAbsolutePath());
         setResult(RESULT_OK, receivedIntent);
         finish();
     }

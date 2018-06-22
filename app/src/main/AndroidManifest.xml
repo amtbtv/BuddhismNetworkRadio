@@ -28,16 +28,15 @@
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.StartActivity"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -46,42 +45,46 @@
             android:label="@string/lxwm"
             android:parentActivityName=".activity.StartActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.NewsActivity"
             android:label="@string/zxxx"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.ScheduleActivity"
             android:label="@string/jmlb"
             android:parentActivityName=".activity.StartActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.Mp3PlayerActivity"
             android:label="@string/title_activity_mp3_player"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.Mp3ManagerActivity"
             android:label="@string/title_activity_mp3_manager"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.DownLoadActivity"
             android:label="@string/title_activity_down_load"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.PickDownloadFolderActivity"
             android:label="@string/title_activity_pick_download_folder"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.SelectProgramActivity"
             android:label="@string/title_activity_select_program"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.DownloadSettingActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_download_setting"></activity>
 
     </application>

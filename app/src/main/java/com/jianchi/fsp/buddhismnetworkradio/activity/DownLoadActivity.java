@@ -234,7 +234,7 @@ public class DownLoadActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(Integer... integers) {
             OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().url("http://amtbsg.cloudapp.net/loadbalancer/amtbservers.php?singleserver=1").build();
+            Request request = new Request.Builder().url("http://amtbsg.cloudapp.net/loadbalancer/amtbservers.php?singleserver=1&servertype=httpserver&mediatype=media&media=mp3").build();
             Call call = client.newCall(request);
             try {
                 Response response = call.execute();
@@ -393,7 +393,8 @@ public class DownLoadActivity extends AppCompatActivity {
             this.programListItem = programListItem;
         }
 
-        void addTaskInfo(MediaListResult mediaListResult){
+        int addTaskInfo(MediaListResult mediaListResult){
+            int c = 0;
             for (MediaListItem mediaListItem : mediaListResult.getList().getItem()) {
                 if(mediaListItem.getFiletype().equals("mp3")) {
                     DownloadTaskInfo taskInfo = new DownloadTaskInfo();
@@ -409,8 +410,10 @@ public class DownLoadActivity extends AppCompatActivity {
                     }
                     taskInfo.dbRecId = db.add(taskInfo);
                     taskInfos.add(taskInfo);
+                    c++;
                 }
             }
+            return c;
         }
 
         @Override
@@ -428,10 +431,9 @@ public class DownLoadActivity extends AppCompatActivity {
                     programListItem.getSubamtbid(),
                     programListItem.getLectureid());
             if(mediaListResult!=null){
-                count += mediaListResult.getList().getItem().size();
                 size = mediaListResult.getVollist().size();
                 idx = 1;
-                addTaskInfo(mediaListResult);
+                count += addTaskInfo(mediaListResult);
                 onProgressUpdate(mediaListResult);
                 for (int i = 1; i < size; i++) {
                     int volid = mediaListResult.getVollist().get(i).getItem().getVolid();
@@ -441,9 +443,8 @@ public class DownLoadActivity extends AppCompatActivity {
                             programListItem.getLectureid(),
                             volid);
                     if(mediaListResult2!=null) {
-                        count += mediaListResult2.getList().getItem().size();
                         idx=i+1;
-                        addTaskInfo(mediaListResult2);
+                        count += addTaskInfo(mediaListResult2);
                         onProgressUpdate(mediaListResult2);
                     }
                 }
