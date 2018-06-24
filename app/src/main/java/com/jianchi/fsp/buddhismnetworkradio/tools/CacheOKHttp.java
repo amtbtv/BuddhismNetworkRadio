@@ -35,6 +35,7 @@ public class CacheOKHttp {
         Cache cache = new Cache(cacheFile,cacheSize);
 
         client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(new CacheInterceptor())
                 .cache(cache)
                 .build();
     }
