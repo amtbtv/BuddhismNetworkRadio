@@ -4,71 +4,45 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseExpandableListAdapter;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.beardedhen.androidbootstrap.AwesomeTextView;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaList;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.VolListItem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * 在Mp3PlayerActivity的播放列表中用到
  */
-public class Mp3ListAdapter extends BaseExpandableListAdapter {
+public class Mp3ListAdapter extends BaseAdapter {
     //volid  mp3列表
-    public HashMap<Integer, MediaList> mediaListHashMap;
-    public List<VolListItem> volList;
-
+    public List<String> mediaList;
     public Mp3Program mp3Program;
     private LayoutInflater mInflater;
     Context context;
 
-    public Mp3ListAdapter(Context context, Mp3Program mp3Program, List<VolListItem> volList, int volidIdx, MediaList mediaList){
+    public Mp3ListAdapter(Context context, Mp3Program mp3Program, List<String> mediaList){
         this.context=context;
-        this.volList = volList;
-        mediaListHashMap = new HashMap<>();
-        mediaListHashMap.put(volidIdx, mediaList);
+        this.mediaList = mediaList;
         this.mp3Program = mp3Program;
         this.mInflater = LayoutInflater.from(context);
     }
 
     @Override
-    public int getGroupCount() {
-        return volList.size();
+    public int getCount() {
+        return mediaList.size();
     }
 
     @Override
-    public int getChildrenCount(int groupPosition) {
-        return mediaListHashMap.get(groupPosition).getItem().size();
+    public Object getItem(int position) {
+        return mediaList.get(position);
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
-        return volList.get(groupPosition);
-    }
-
-    @Override
-    public Object getChild(int groupPosition, int childPosition) {
-        return mediaListHashMap.get(groupPosition).getItem().get(childPosition);
-    }
-
-    @Override
-    public long getGroupId(int groupPosition) {
-        return groupPosition;
-    }
-
-    @Override
-    public long getChildId(int groupPosition, int childPosition) {
-        return childPosition;
+    public long getItemId(int position) {
+        return position;
     }
 
     @Override
@@ -77,26 +51,16 @@ public class Mp3ListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.group_channel, null);
-        }
-        TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(volList.get(groupPosition).getItem().getVolno());
-        return convertView;
-    }
-
-    @Override
-    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        MediaListItem holder =(MediaListItem)getChild(groupPosition, childPosition);
+    public View getView(int position, View convertView, ViewGroup parent) {
+        String mp3 = mediaList.get(position);
         //观察convertView随ListView滚动情况
         if(convertView==null)
             convertView = mInflater.inflate(R.layout.item_mp3, null);
 
-        convertView.setTag(holder);
+        convertView.setTag(mp3);
 
         AwesomeTextView icon_play = (AwesomeTextView) convertView.findViewById(R.id.icon_play);
-        if(childPosition == mp3Program.curMediaIdx && groupPosition == mp3Program.curVolIdx){
+        if(position == mp3Program.curMediaIdx){
             icon_play.setFontAwesomeIcon("fa-music");
             convertView.setBackgroundResource(R.color.bootstrap_brand_warning);
         } else {
@@ -105,13 +69,8 @@ public class Mp3ListAdapter extends BaseExpandableListAdapter {
         }
 
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(TW2CN.getInstance(context).toLocal(holder.getFileurl().split("/")[2]));
+        txt.setText(mp3);
 
         return convertView;
-    }
-
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
     }
 }

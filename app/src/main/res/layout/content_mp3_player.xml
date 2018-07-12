@@ -8,7 +8,7 @@
     tools:context="com.jianchi.fsp.buddhismnetworkradio.activity.Mp3PlayerActivity"
     tools:showIn="@layout/activity_mp3_player">
 
-    <ExpandableListView
+    <ListView
         android:id="@+id/lv_mp3"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toTopOf="@+id/play_ui"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
-    </ExpandableListView>
+    </ListView>
 
 
     <LinearLayout

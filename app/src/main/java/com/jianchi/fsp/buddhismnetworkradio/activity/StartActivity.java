@@ -12,24 +12,21 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ChannelListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.TvChannelListAdapter;
-import com.jianchi.fsp.buddhismnetworkradio.api.Channel;
-import com.jianchi.fsp.buddhismnetworkradio.api.ChannelList;
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.Constant;
+import com.jianchi.fsp.buddhismnetworkradio.model.Live;
+import com.jianchi.fsp.buddhismnetworkradio.model.LiveListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -50,7 +47,12 @@ public class StartActivity extends AppCompatActivity {
     BootstrapButton bt_mp3;//切换为音频点播列表按扭
 
     List<Mp3Program> mp3Programs;//音频节目列表
-    ChannelList channelList;//视频节目列表
+    LiveListResult liveListResult;//视频节目列表
+
+    TvChannelListAdapter tvChannelListAdapter;
+    Mp3ChannelListAdapter mp3ChannelListAdapter;
+
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,21 +64,43 @@ public class StartActivity extends AppCompatActivity {
 
         //获取自定义APP，APP内存在着数据，若为旋转屏幕，此处记录以前的内容
         app = (BApplication)getApplication();
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
+        if(app.isNetworkConnected()){
+            progressBar.setVisibility(View.VISIBLE);
+            AmtbApi<LiveListResult> api = new AmtbApi<>(AmtbApi.takeLivesUrl(), new AmtbApiCallBack<LiveListResult>() {
+                @Override
+                public void callBack(LiveListResult obj) {
+                    progressBar.setVisibility(View.GONE);
+                    if(obj!=null) {
+                        liveListResult = obj;
+                        setUi();
+                    } else {
+                        Toast.makeText(StartActivity.this, R.string.no_network, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            api.execute(LiveListResult.class);
+        } else {
+            Toast.makeText(StartActivity.this, R.string.no_network, Toast.LENGTH_LONG).show();
+        }
+
+
+    }
+
+    void setUi(){
         //音频和视频的列表视频，listview，在点击时判断点的是音频还是视频
         lv_channel = (ListView) findViewById(R.id.lv_channel);
         lv_channel.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //if(app.isNetworkConnected())
                 {
                     if (lv_channel.getAdapter() instanceof TvChannelListAdapter) {
-                        Channel programType = (Channel) view.getTag();
-                        channelList.selectedChannelTitle = programType.title;
+                        Live programType = (Live) view.getTag();
                         Intent intent = new Intent(StartActivity.this, MainActivity.class);
-                        intent.putExtra("title", programType.title);
+                        intent.putExtra("name", programType.name);
                         intent.putExtra("listUrl", programType.listUrl);
-                        intent.putExtra("tvUrl", programType.tvUrl);
+                        intent.putExtra("mediaUrl", programType.mediaUrl);
                         startActivity(intent);
                     } else {
                         Mp3Program mp3Program = (Mp3Program) view.getTag();
@@ -86,10 +110,6 @@ public class StartActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 }
-                //else
-                {
-                //    Toast.makeText(getApplicationContext(), R.string.no_network, Toast.LENGTH_LONG).show();
-                }
             }
         });
 
@@ -97,24 +117,10 @@ public class StartActivity extends AppCompatActivity {
         //载入音频节目列表数据，并排序
         Mp3RecDBManager db = new Mp3RecDBManager();
         mp3Programs = db.getAllMp3Rec();
-        /*
-        Collections.sort(mp3Programs, new Comparator<Mp3Program>() {
-            @Override
-            public int compare(Mp3Program o1, Mp3Program o2) {
-                Integer o1n = o1.num;
-                return -o1n.compareTo(o2.num);
-            }
-        });
-        */
-
-        //载入视频节目列表
-        channelList = new ChannelList();
-        String json = Tools.readRawFile(R.raw.channels, this);
-        channelList.channels= new Gson().fromJson(json, new TypeToken<List<Channel>>(){}.getType());
-        channelList.selectedChannelTitle =channelList.channels.get(0).title;
+        mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
 
         //默认初始为视频节目
-        TvChannelListAdapter tvChannelListAdapter = new TvChannelListAdapter(StartActivity.this, channelList, app);
+        tvChannelListAdapter = new TvChannelListAdapter(StartActivity.this, liveListResult);
         lv_channel.setAdapter(tvChannelListAdapter);
 
         //切换音频视频
@@ -124,7 +130,6 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void OnCheckedChanged(BootstrapButton bootstrapButton, boolean isChecked) {
                 if(isChecked){
-                    TvChannelListAdapter tvChannelListAdapter = new TvChannelListAdapter(StartActivity.this, channelList, app);
                     lv_channel.setAdapter(tvChannelListAdapter);
                 }
             }
@@ -133,9 +138,7 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void OnCheckedChanged(BootstrapButton bootstrapButton, boolean isChecked) {
                 if(isChecked) {
-                    Mp3ChannelListAdapter mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
                     lv_channel.setAdapter(mp3ChannelListAdapter);
-
                     if(mp3ChannelListAdapter.getCount()==0){
                         //显示对话框，要求添加音频
                         AlertDialog dialog = new AlertDialog.Builder(StartActivity.this)
@@ -162,19 +165,7 @@ public class StartActivity extends AppCompatActivity {
                 }
             }
         });
-
-        //判断是不是由点击状态栏启动，判断传进来的参数
-        /*
-        Intent intent = getIntent();
-        String startWith = intent.getStringExtra("StartWith");
-        if(startWith.equals(Constant.StartWith_MP3_SERVICE)) {
-            Intent mp3Intent = new Intent(StartActivity.this, Mp3PlayerActivity.class);
-            mp3Intent.putExtra("StartWith", Constant.StartWith_MP3_SERVICE);
-            startActivity(mp3Intent);
-        }
-        */
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -225,7 +216,7 @@ public class StartActivity extends AppCompatActivity {
             //重新载入MP3 list
             Mp3RecDBManager db = new Mp3RecDBManager();
             mp3Programs = db.getAllMp3Rec();
-            Mp3ChannelListAdapter mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
+            mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
             lv_channel.setAdapter(mp3ChannelListAdapter);
         }
     }

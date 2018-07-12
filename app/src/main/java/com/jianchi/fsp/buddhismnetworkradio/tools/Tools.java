@@ -3,9 +3,6 @@ package com.jianchi.fsp.buddhismnetworkradio.tools;
 import android.content.Context;
 import android.content.res.Resources;
 
-import com.google.gson.Gson;
-import com.jianchi.fsp.buddhismnetworkradio.api.IpInfo;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -83,29 +80,5 @@ public class Tools {
             e.printStackTrace();
             return "";
         }
-    }
-
-    public IpInfo getIpInof(){
-        String html = downHtml("http://ip.taobao.com/service/getIpInfo2.php?ip=myip");
-        IpInfo ipInfo = new Gson().fromJson(html, IpInfo.class);
-        /*{
-    "code": 0,
-    "data": {
-        "country": "中国", 台湾 日本 德国
-        "country_id": "CN",
-        "area": "华中",
-        "area_id": "400000",
-        "region": "河南省", 江苏  山东
-        "region_id": "410000",
-        "city": "焦作市",
-        "city_id": "410800",
-        "county": "",
-        "county_id": "-1",
-        "isp": "联通",
-        "isp_id": "100026",
-        "ip": "42.234.54.167"
-    }
-}*/
-        return ipInfo;
     }
 }

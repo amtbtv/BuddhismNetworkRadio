@@ -21,7 +21,7 @@ public class ScheduleActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         Intent intent = getIntent();
-        String title = intent.getStringExtra("title");
+        String title = intent.getStringExtra("name");
         String listUrl = intent.getStringExtra("listUrl");
 
         app = (BApplication)getApplication();
@@ -34,7 +34,7 @@ public class ScheduleActivity extends AppCompatActivity {
 
         if(app.isNetworkConnected()) {
             if (listUrl.endsWith(".png")) {
-                String html = "<!DOCTYPE html><html lang='zh-cn'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1' /><title>img</title><style type='text/css'>img{ width:100%; max-width:100%;}</style></head><body><div><img src='listUrl' /></div></body></html>";
+                String html = "<!DOCTYPE html><html lang='zh-cn'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1' /><style type='text/css'>img{ width:100%; max-width:100%;}</style></head><body><div><img src='listUrl' /></div></body></html>";
                 html = html.replace("listUrl", listUrl);
                 webView.loadData(html, "text/html", "UTF-8");
             } else {

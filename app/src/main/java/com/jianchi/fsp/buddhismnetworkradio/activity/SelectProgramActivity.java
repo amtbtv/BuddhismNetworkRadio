@@ -1,10 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -22,17 +19,13 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
-import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ManagerAdapter;
-import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
+import com.jianchi.fsp.buddhismnetworkradio.model.Channel;
+import com.jianchi.fsp.buddhismnetworkradio.model.ChannelListResult;
+import com.jianchi.fsp.buddhismnetworkradio.model.Program;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.CategoryListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.CategoryListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListResult;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,12 +34,12 @@ public class SelectProgramActivity extends AppCompatActivity {
     ExpandableListView lv;
     BApplication app;
 
-    CategoryListResult categoryListResult;
-    HashMap<Integer, List<ProgramListItem>> programListResultHashMap;
+    ChannelListResult channelListResult;
+    HashMap<Integer, List<Program>> programListResultHashMap;
     SelectProgramAdapter selectProgramAdapter;
     ProgressBar proBar;
 
-    ProgramListItem selectedProgramListItem = null;
+    Program selectedProgramListItem = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +58,7 @@ public class SelectProgramActivity extends AppCompatActivity {
         lv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                selectedProgramListItem = (ProgramListItem) v.getTag();
+                selectedProgramListItem = (Program) v.getTag();
                 selectProgramAdapter.notifyDataSetChanged();
                 return false;
             }
@@ -73,7 +66,7 @@ public class SelectProgramActivity extends AppCompatActivity {
 
         lv.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+            public boolean onGroupClick(ExpandableListView parent, View v, final int groupPosition, long id) {
                 //如果分组被打开 直接关闭
                 if (lv.isGroupExpanded(groupPosition) ) {
                     lv.collapseGroup(groupPosition);
@@ -83,7 +76,24 @@ public class SelectProgramActivity extends AppCompatActivity {
                     } else {
                         //显示对话框
                         proBar.setVisibility(View.VISIBLE);
-                        new LoadProgramList(groupPosition).execute();
+                        Channel channel = (Channel)selectProgramAdapter.getGroup(groupPosition);
+                        AmtbApi<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult> api = new AmtbApi<>(AmtbApi.takeProgramsUrl(channel.amtbid), new AmtbApiCallBack<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult>() {
+                            @Override
+                            public void callBack(com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult obj) {
+                                proBar.setVisibility(View.GONE);
+                                if(obj!=null) {
+                                    if(obj.programs.size()>0) {
+                                        programListResultHashMap.put(groupPosition, obj.programs);
+                                        lv.expandGroup(groupPosition, true);
+                                    } else {
+                                        Toast.makeText(SelectProgramActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
+                                    }
+                                } else {
+                                    Toast.makeText(SelectProgramActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        });
+                        api.execute(com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult.class);
                         return true;
                     }
                 }
@@ -94,60 +104,20 @@ public class SelectProgramActivity extends AppCompatActivity {
         programListResultHashMap = new HashMap<>();
         //显示对话框
         proBar.setVisibility(View.VISIBLE);
-        new LoadCategoryList().execute();
-    }
-
-    class LoadProgramList extends AsyncTask<Integer, Integer, List<ProgramListResult>> {
-        int groupPosition;
-        public LoadProgramList(int groupPosition){
-            this.groupPosition = groupPosition;
-        }
-        @Override
-        protected List<ProgramListResult> doInBackground(Integer... integers) {
-            CategoryListItem categoryListItem = categoryListResult.getList().getItem().get(groupPosition);
-            return AmtbQuery.queryProgramListResult(categoryListItem.getAmtbid());
-        }
-
-        @Override
-        protected void onPostExecute(List<ProgramListResult> programListResultList) {
-            super.onPostExecute(programListResultList);
-            List<ProgramListItem> programListItems = new ArrayList<>();
-            for(ProgramListResult result : programListResultList){
-                programListItems.addAll(result.getList().getItem());
+        AmtbApi<ChannelListResult> api = new AmtbApi<>(AmtbApi.takeChannelsUrl(), new AmtbApiCallBack<ChannelListResult>() {
+            @Override
+            public void callBack(ChannelListResult obj) {
+                proBar.setVisibility(View.GONE);
+                if(obj!=null) {
+                    SelectProgramActivity.this.channelListResult = obj;
+                    selectProgramAdapter = new SelectProgramAdapter();
+                    lv.setAdapter(selectProgramAdapter);
+                } else {
+                    Toast.makeText(SelectProgramActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                }
             }
-
-            if(programListItems.size()>0) {
-                programListResultHashMap.put(groupPosition, programListItems);
-                lv.expandGroup(groupPosition, true);
-            } else {
-                Toast.makeText(SelectProgramActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
-            }
-            //异步加载
-            proBar.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    class LoadCategoryList extends AsyncTask<Integer, Integer, CategoryListResult>{
-
-        @Override
-        protected CategoryListResult doInBackground(Integer... integers) {
-            return AmtbQuery.queryCategoryListResult();
-        }
-
-        @Override
-        protected void onPostExecute(CategoryListResult categoryListResult) {
-            super.onPostExecute(categoryListResult);
-
-            //异步加载
-            proBar.setVisibility(View.INVISIBLE);
-            if(categoryListResult==null){
-                Toast.makeText(SelectProgramActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
-            } else {
-                SelectProgramActivity.this.categoryListResult = categoryListResult;
-                selectProgramAdapter = new SelectProgramAdapter();
-                lv.setAdapter(selectProgramAdapter);
-            }
-        }
+        });
+        api.execute(ChannelListResult.class);
     }
 
     @Override
@@ -177,7 +147,7 @@ public class SelectProgramActivity extends AppCompatActivity {
 
         @Override
         public int getGroupCount() {
-            return categoryListResult.getList().getItem().size();
+            return channelListResult.channels.size();
         }
 
         @Override
@@ -191,7 +161,7 @@ public class SelectProgramActivity extends AppCompatActivity {
 
         @Override
         public Object getGroup(int groupPosition) {
-            return categoryListResult.getList().getItem().get(groupPosition);
+            return channelListResult.channels.get(groupPosition);
         }
 
         @Override
@@ -221,13 +191,13 @@ public class SelectProgramActivity extends AppCompatActivity {
                 convertView = mInflater.inflate(R.layout.group_channel, null);
             }
             TextView txt = (TextView) convertView.findViewById(R.id.txt);
-            txt.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(categoryListResult.getList().getItem().get(groupPosition).getName()));
+            txt.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(channelListResult.channels.get(groupPosition).name));
             return convertView;
         }
 
         @Override
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-            ProgramListItem programListItem = programListResultHashMap.get(groupPosition).get(childPosition);
+            Program programListItem = programListResultHashMap.get(groupPosition).get(childPosition);
 
             if(convertView==null)
                 convertView = mInflater.inflate(R.layout.item_mp3_program_manager, null);
@@ -235,10 +205,10 @@ public class SelectProgramActivity extends AppCompatActivity {
             convertView.setTag(programListItem);
 
             TextView txt = (TextView) convertView.findViewById(R.id.txt);
-            txt.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.getLecturename()));
+            txt.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.name));
 
             TextView info = (TextView) convertView.findViewById(R.id.info);
-            info.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.getLecturedate()));
+            info.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.name));
 
             CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
 

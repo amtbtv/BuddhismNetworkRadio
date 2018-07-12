@@ -1,7 +1,6 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.app.Service;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -9,7 +8,9 @@ import android.support.v7.widget.Toolbar;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -18,17 +19,15 @@ import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.AudioPlayer;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.MediaNotificationManager;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
 import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaList;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListResult;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Mp3PlayerActivity extends AppCompatActivity {
@@ -37,7 +36,7 @@ public class Mp3PlayerActivity extends AppCompatActivity {
     MediaNotificationManager mediaNotificationManager;
     //Mp3Receiver mp3Receiver;
 
-    ExpandableListView lv;
+    ListView lv;
     Mp3ListAdapter mp3ListAdapter;
 
     BApplication app;
@@ -74,119 +73,24 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         @Override
         public void ended() {
             //判断是否存在下一首歌
-            MediaList mediaList = mp3ListAdapter.mediaListHashMap.get(mp3Program.curVolIdx);
-            if(mp3Program.curMediaIdx<mediaList.getItem().size()-1){
+            List<String> mediaList = mp3ListAdapter.mediaList;
+            if(mediaList.size()>mp3Program.curMediaIdx+1){
                 mp3Program.curMediaIdx++;
-                MediaListItem mediaListItem = mediaList.getItem().get(mp3Program.curMediaIdx);
+                String mp3 = mediaList.get(mp3Program.curMediaIdx);
                 mp3Program.postion = 0;
-                audioPlayer.play(makeMp3Url(mediaListItem.getFileurl()), mp3Program.postion);
+                audioPlayer.play(makeMp3Url(mp3), mp3Program.postion);
                 mp3ListAdapter.notifyDataSetChanged();
-            } else {
-                //判断是否存在下一个vol
-                if(mp3Program.curVolIdx < mp3ListAdapter.volList.size()-1){
-                    mp3Program.curVolIdx++;
-                    mp3Program.curVol = mp3ListAdapter.volList.get(mp3Program.curVolIdx).getItem().getVolid();
-                    mp3Program.curMediaIdx = 0;
-                    mp3Program.postion = 0;
-
-                    MediaList nextMediaList = mp3ListAdapter.mediaListHashMap.get(mp3Program.curVolIdx);
-                    //如果下一个列表已经加载了，直接播放就好了
-                    if(nextMediaList!=null){
-                        MediaListItem mediaListItem = nextMediaList.getItem().get(mp3Program.curMediaIdx);
-                        audioPlayer.play(makeMp3Url(mediaListItem.getFileurl()), mp3Program.postion);
-                        mp3ListAdapter.notifyDataSetChanged();
-                    } else {
-                        //没有加载，异步加载并播放
-                        new LoadMediaListResult(mp3Program.curVolIdx, mp3Program.curVol, true).execute();
-                    }
-                }
             }
         }
 
         @Override
         public void start() {
             mediaNotificationManager.startNotification(
-                    mp3Program.programListItem.getLecturename(),
-                    ((MediaListItem) mp3ListAdapter.getChild(mp3Program.curVolIdx, mp3Program.curMediaIdx)).getFileno()
+                    mp3Program.programListItem.name,
+                    mp3ListAdapter.mediaList.get(mp3Program.curMediaIdx)
             );
         }
     };
-
-    class LoadMediaListResult extends AsyncTask<Integer, Integer, MediaListResult> {
-        int volidIdx;
-        int volid;
-        boolean toPlay;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            proBar.setVisibility(View.VISIBLE);
-        }
-
-        public LoadMediaListResult(int volidIdx, int volid, boolean toPlay){
-            this.toPlay = toPlay;
-            this.volid = volid;
-            this.volidIdx = volidIdx;
-        }
-
-        @Override
-        protected MediaListResult doInBackground(Integer... integers) {
-            if (volid == -1) { //说明是第一次载入
-                return AmtbQuery.queryMediaListResult(
-                        mp3Program.programListItem.getAmtbid(),
-                        mp3Program.programListItem.getSubamtbid(),
-                        mp3Program.programListItem.getLectureid());
-            } else {
-                return AmtbQuery.queryMediaListResult(
-                        mp3Program.programListItem.getAmtbid(),
-                        mp3Program.programListItem.getSubamtbid(),
-                        mp3Program.programListItem.getLectureid(),
-                        volid);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(MediaListResult mediaListResult) {
-            super.onPostExecute(mediaListResult);
-
-            //异步加载
-            proBar.setVisibility(View.INVISIBLE);
-
-            if(mediaListResult==null){
-                Toast.makeText(Mp3PlayerActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
-            } else {
-                List<MediaListItem> mediaListItemList = new ArrayList<>();
-                for(MediaListItem item : mediaListResult.getList().getItem()){
-                    if(item.getFiletype().equals("mp3")){
-                        mediaListItemList.add(item);
-                    }
-                }
-                MediaList mediaList = new MediaList();
-                mediaList.setItem(mediaListItemList);
-
-                //首次加载，载入数据即可
-                if (mp3ListAdapter == null) {
-                    mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3Program, mediaListResult.getVollist(), volidIdx, mediaList);
-                    lv.setAdapter(mp3ListAdapter);
-                } else {
-                    mp3ListAdapter.mediaListHashMap.put(volidIdx, mediaList);
-                }
-
-                lv.expandGroup(volidIdx);
-
-                if (toPlay) {
-                    if(mediaList.getItem().size()>mp3Program.curMediaIdx) {
-                        MediaListItem mediaListItem = mediaList.getItem().get(mp3Program.curMediaIdx);
-                        String url = makeMp3Url(mediaListItem.getFileurl());
-                        audioPlayer.play(url, mp3Program.postion);
-                    } else {
-                        Toast.makeText(Mp3PlayerActivity.this, R.string.load_fail_reload, Toast.LENGTH_LONG).show();
-                    }
-                    mp3ListAdapter.notifyDataSetChanged();
-                }
-            }
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,9 +101,19 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
         proBar = (ProgressBar) findViewById(R.id.mp3ProBar);
 
-        lv = (ExpandableListView) findViewById(R.id.lv_mp3);
-        lv.setOnGroupClickListener(groupClickListener);
-        lv.setOnChildClickListener(childClickListener);
+        lv = (ListView) findViewById(R.id.lv_mp3);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(mp3Program.curMediaIdx != position){
+                    String mp3 = (String) view.getTag();
+                    mp3Program.curMediaIdx = position;
+                    mp3Program.postion = 0;
+                    mp3ListAdapter.notifyDataSetChanged();
+                    audioPlayer.play(makeMp3Url(mp3), mp3Program.postion);
+                }
+            }
+        });
 
         playerControlView = (PlayerControlView) findViewById(R.id.playerControlView);
         playerControlView.setShowTimeoutMs(0);
@@ -210,7 +124,7 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         //mp3Program必不为null，因为这是点击这个才来到这里的
         mp3Program = db.getMp3RecByDbRecId(dbRecId);
 
-        setTitle(TW2CN.getInstance(this).toLocal(mp3Program.programListItem.getLecturename()));
+        setTitle(TW2CN.getInstance(this).toLocal(mp3Program.programListItem.name));
 
         app = (BApplication)getApplication();
 
@@ -228,7 +142,31 @@ public class Mp3PlayerActivity extends AppCompatActivity {
             tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
 
             //载入数据并播放
-            new LoadMediaListResult(mp3Program.curVolIdx, mp3Program.curVol, true).execute();
+            proBar.setVisibility(View.VISIBLE);
+            AmtbApi<FileListResult> api = new AmtbApi<>(AmtbApi.takeFilesUrl(mp3Program.programListItem.identifier), new AmtbApiCallBack<FileListResult>() {
+                @Override
+                public void callBack(FileListResult obj) {
+                    proBar.setVisibility(View.GONE);
+                    if(obj!=null) {
+                        //异步加载
+                        proBar.setVisibility(View.INVISIBLE);
+                        mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3Program, obj.files);
+                        lv.setAdapter(mp3ListAdapter);
+
+                        if (obj.files.size() > mp3Program.curMediaIdx) {
+                            String mp3 = obj.files.get(mp3Program.curMediaIdx);
+                            String url = makeMp3Url(mp3);
+                            audioPlayer.play(url, mp3Program.postion);
+                        } else {
+                            Toast.makeText(Mp3PlayerActivity.this, R.string.load_fail_reload, Toast.LENGTH_LONG).show();
+                        }
+                        mp3ListAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(Mp3PlayerActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            api.execute(FileListResult.class);
         } else {
             networkFailClose();
         }
@@ -263,49 +201,14 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         }
     };
 
-    ExpandableListView.OnGroupClickListener groupClickListener = new ExpandableListView.OnGroupClickListener() {
-        @Override
-        public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-            //如果分组被打开 直接关闭
-            if (lv.isGroupExpanded(groupPosition) ) {
-                lv.collapseGroup(groupPosition);
-            } else {
-                if(mp3ListAdapter.mediaListHashMap.containsKey(groupPosition)){
-                    lv.expandGroup(groupPosition);
-                } else {
-                    int volid = mp3ListAdapter.volList.get(groupPosition).getItem().getVolid();
-                    new LoadMediaListResult(groupPosition, volid, false).execute();
-                }
-            }
-            //返回false表示系统自己处理展开和关闭事件 返回true表示调用者自己处理展开和关闭事件
-            return true;
-        }
-    };
-
-    ExpandableListView.OnChildClickListener childClickListener = new ExpandableListView.OnChildClickListener() {
-        @Override
-        public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-            if(mp3Program.curMediaIdx != childPosition || mp3Program.curVolIdx != groupPosition){
-                MediaListItem mediaListItem = (MediaListItem) v.getTag();
-                mp3Program.curMediaIdx = childPosition;
-                mp3Program.curVolIdx = groupPosition;
-                mp3Program.curVol = mp3ListAdapter.volList.get(groupPosition).getItem().getVolid();
-                mp3Program.postion = 0;
-                mp3ListAdapter.notifyDataSetChanged();
-                audioPlayer.play(makeMp3Url(mediaListItem.getFileurl()), mp3Program.postion);
-            }
-            return true;
-        }
-    };
-
-    //由XML中的URL转为真实的URL  <fileurl>56k/12/12-017-0019.mp3</fileurl>
-    private String makeMp3Url(String xmlFileUrl) {
+    //12-017-0019.mp3
+    private String makeMp3Url(String mp3) {
         //                  http://amtbsg.cloudapp.net/redirect/vod/_definst_/mp3:mp3/02/02-041/02-041-0001.mp3/playlist.m3u8
         //                  http://amtbsg.cloudapp.net/redirect/media/mp3/02/02-041/02-041-0001.mp3
         //String urlFormat = "http://amtbsg.cloudapp.net/redirect/vod/_definst_/mp3:mp3/%s/%s/%s/playlist.m3u8";
         String urlFormat = "http://amtbsg.cloudapp.net/redirect/media/mp3/%s/%s/%s";
-        String[] sp = xmlFileUrl.split("/");
-        String url = String.format(urlFormat, sp[1], mp3Program.programListItem.getLectureno(), sp[2]);
+        String[] sp = mp3.split("-");
+        String url = String.format(urlFormat, sp[0], mp3Program.programListItem.identifier, mp3);
         return url;
     }
 

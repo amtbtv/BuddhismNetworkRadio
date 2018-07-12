@@ -18,9 +18,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.R;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
 
 public class DownloadSettingActivity extends PreferenceActivity {
 

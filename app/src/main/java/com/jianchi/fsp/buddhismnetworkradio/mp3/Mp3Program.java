@@ -1,6 +1,6 @@
 package com.jianchi.fsp.buddhismnetworkradio.mp3;
 
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
+import com.jianchi.fsp.buddhismnetworkradio.model.Program;
 
 /**
  * Created by fsp on 17-8-7.
@@ -12,7 +12,6 @@ import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
 
 public class Mp3Program {
 
-
     public Mp3Program(){}
 
     //数据库ID
@@ -21,10 +20,6 @@ public class Mp3Program {
     public int postion = 0;
     //当前文件序号
     public int curMediaIdx = 0;
-    //当前分页号，因为有可能等于0所以设置为-1
-    public int curVol = -1;
-    //当前vol序号
-    public int curVolIdx = 0;
     //节目数据
-    public ProgramListItem programListItem;
+    public Program programListItem;
 }

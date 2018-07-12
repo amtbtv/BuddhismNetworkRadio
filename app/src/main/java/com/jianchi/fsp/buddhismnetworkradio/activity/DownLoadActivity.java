@@ -36,11 +36,11 @@ import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.db.DownloadTaskInfoDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileListResult;
+import com.jianchi.fsp.buddhismnetworkradio.model.Program;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.DownloadTaskInfo;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.MediaListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
 import com.liulishuo.okdownload.DownloadListener;
 import com.liulishuo.okdownload.DownloadSerialQueue;
 import com.liulishuo.okdownload.DownloadTask;
@@ -314,7 +314,6 @@ public class DownLoadActivity extends AppCompatActivity {
         return serverDomain+xmlFileUrl;
     }
 
-
     private void writeFolderLocation(String folderLocation) {
         SharedPreferences.Editor editor = getSharedPreferences("downloadsetting", MODE_PRIVATE).edit();
         editor.putString("folderLocation", folderLocation);
@@ -347,10 +346,42 @@ public class DownLoadActivity extends AppCompatActivity {
         } else if (requestCode == PROGRAM_PICKER_CODE) {
             if (resultCode == Activity.RESULT_OK && intent.hasExtra("data")) {
                 String json = intent.getExtras().getString("data");
-                ProgramListItem programListItem = new Gson().fromJson(json, ProgramListItem.class);
+                final Program program = new Gson().fromJson(json, Program.class);
 
-                LoadMediaListResult  loadMediaListResult = new LoadMediaListResult(programListItem);
-                loadMediaListResult.execute();
+                proBar.setVisibility(View.VISIBLE);
+                AmtbApi<FileListResult> api = new AmtbApi<>(AmtbApi.takeFilesUrl(program.identifier), new AmtbApiCallBack<FileListResult>() {
+                    @Override
+                    public void callBack(FileListResult obj) {
+                        proBar.setVisibility(View.GONE);
+                        if(obj!=null) {
+                            for (String file : obj.files) {
+                                DownloadTaskInfo taskInfo = new DownloadTaskInfo();
+                                //56k/12/12-017-0016.mp3
+                                String[] sp = file.split("-");
+                                taskInfo.fileName = sp[0]+"/"+program.identifier+"/"+file;
+                                taskInfo.state = TaskState.未选择.toString();
+                                taskInfo.checked = "F";
+                                //检测是否存在
+                                for(DownloadTaskInfo d : taskInfos){
+                                    if(d.fileName.equals(taskInfo.fileName))
+                                        continue;
+                                }
+                                taskInfo.dbRecId = db.add(taskInfo);
+                                taskInfos.add(taskInfo);
+                            }
+                            taskInfoAdapter.notifyDataSetChanged();
+                            int count = obj.files.size();
+                            Toast.makeText(
+                                    DownLoadActivity.this,
+                                    String.format(getResources().getString(R.string.load_download_list_over), count),
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        } else {
+                            Toast.makeText(DownLoadActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+                api.execute(FileListResult.class);
             }
         }
     }
@@ -383,98 +414,6 @@ public class DownLoadActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    class LoadMediaListResult extends AsyncTask<Integer, MediaListResult, Integer> {
-        int size;
-        int idx;
-        ProgramListItem programListItem;
-        public LoadMediaListResult(ProgramListItem programListItem) {
-            this.programListItem = programListItem;
-        }
-
-        int addTaskInfo(MediaListResult mediaListResult){
-            int c = 0;
-            for (MediaListItem mediaListItem : mediaListResult.getList().getItem()) {
-                if(mediaListItem.getFiletype().equals("mp3")) {
-                    DownloadTaskInfo taskInfo = new DownloadTaskInfo();
-                    //56k/12/12-017-0016.mp3
-                    String[] sp = mediaListItem.getFileurl().split("/");
-                    taskInfo.fileName = sp[1]+"/"+mediaListResult.getLectureno()+"/"+sp[2];
-                    taskInfo.state = TaskState.未选择.toString();
-                    taskInfo.checked = "F";
-                    //检测是否存在
-                    for(DownloadTaskInfo d : taskInfos){
-                        if(d.fileName.equals(taskInfo.fileName))
-                            continue;
-                    }
-                    taskInfo.dbRecId = db.add(taskInfo);
-                    taskInfos.add(taskInfo);
-                    c++;
-                }
-            }
-            return c;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            proBar.setVisibility(View.VISIBLE);
-            proBar.setProgress(0);
-        }
-
-        @Override
-        protected Integer doInBackground(Integer... integers) {
-            int count = 0;
-            MediaListResult mediaListResult = AmtbQuery.queryMediaListResult(
-                    programListItem.getAmtbid(),
-                    programListItem.getSubamtbid(),
-                    programListItem.getLectureid());
-            if(mediaListResult!=null){
-                size = mediaListResult.getVollist().size();
-                idx = 1;
-                count += addTaskInfo(mediaListResult);
-                onProgressUpdate(mediaListResult);
-                for (int i = 1; i < size; i++) {
-                    int volid = mediaListResult.getVollist().get(i).getItem().getVolid();
-                    MediaListResult mediaListResult2 = AmtbQuery.queryMediaListResult(
-                            programListItem.getAmtbid(),
-                            programListItem.getSubamtbid(),
-                            programListItem.getLectureid(),
-                            volid);
-                    if(mediaListResult2!=null) {
-                        idx=i+1;
-                        count += addTaskInfo(mediaListResult2);
-                        onProgressUpdate(mediaListResult2);
-                    }
-                }
-            }
-            return count;
-        }
-
-        @Override
-        protected void onProgressUpdate(MediaListResult... values) {
-            super.onProgressUpdate(values);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    proBar.setMax(size);
-                    proBar.setProgress(idx);
-                }
-            });
-        }
-
-        @Override
-        protected void onPostExecute(Integer count) {
-            super.onPostExecute(count);
-            proBar.setVisibility(View.INVISIBLE);
-            taskInfoAdapter.notifyDataSetChanged();
-            Toast.makeText(
-                    DownLoadActivity.this,
-                    String.format(getResources().getString(R.string.load_download_list_over), count),
-                    Toast.LENGTH_LONG
-            ).show();
-        }
     }
 
     class TaskInfoAdapter extends BaseAdapter {

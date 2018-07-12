@@ -9,10 +9,10 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.model.ChannelListResult;
+import com.jianchi.fsp.buddhismnetworkradio.model.Program;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.CategoryListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,15 +22,15 @@ import java.util.List;
  */
 public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
     List<Mp3Program> checkedMpsPrograms;
-    HashMap<Integer, List<ProgramListItem>> programListResultHashMap;
-    CategoryListResult categoryListResult;
+    HashMap<Integer, List<Program>> programListResultHashMap;
+    ChannelListResult channelListResult;
     private LayoutInflater mInflater;
     Context context;
 
-    public Mp3ManagerAdapter(Context context, List<Mp3Program> checkedMpsPrograms, CategoryListResult categoryListResult){
+    public Mp3ManagerAdapter(Context context, List<Mp3Program> checkedMpsPrograms, ChannelListResult channelListResult){
         this.context=context;
         this.checkedMpsPrograms =checkedMpsPrograms;
-        this.categoryListResult = categoryListResult;
+        this.channelListResult = channelListResult;
         this.mInflater = LayoutInflater.from(context);
         programListResultHashMap = new HashMap<>();
     }
@@ -38,7 +38,7 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getGroupCount() {
-        return categoryListResult.getList().getItem().size();
+        return channelListResult.channels.size();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getGroup(int groupPosition) {
-        return categoryListResult.getList().getItem().get(groupPosition);
+        return channelListResult.channels.get(groupPosition);
     }
 
     @Override
@@ -82,15 +82,15 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
             convertView = mInflater.inflate(R.layout.group_channel, null);
         }
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(TW2CN.getInstance(context).toLocal(categoryListResult.getList().getItem().get(groupPosition).getName()));
+        txt.setText(TW2CN.getInstance(context).toLocal(channelListResult.channels.get(groupPosition).name));
         return convertView;
     }
 
     @Override
     public View getChildView(int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        ProgramListItem programListItem = programListResultHashMap.get(groupPosition).get(childPosition);
+        Program program = programListResultHashMap.get(groupPosition).get(childPosition);
         //获取Mp3Program，若存在直接获取，不存在生成一个
-        Mp3Program holder = checkMp3Program(programListItem);
+        Mp3Program holder = checkMp3Program(program);
 
         //观察convertView随ListView滚动情况
         if(convertView==null)
@@ -99,10 +99,10 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
         convertView.setTag(holder);
 
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.getLecturename()));
+        txt.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.name));
 
         TextView info = (TextView) convertView.findViewById(R.id.info);
-        info.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.getLecturedate()));
+        info.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.name));
 
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
 
@@ -117,15 +117,15 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
         return convertView;
     }
 
-    private Mp3Program checkMp3Program(ProgramListItem programListItem){
-        int lectureid = programListItem.getLectureid();
+    private Mp3Program checkMp3Program(Program program){
+        String identifier = program.identifier;
         for(Mp3Program mp : checkedMpsPrograms){
-            if(mp.programListItem.getLectureid() == lectureid)
+            if(mp.programListItem.identifier.equals(identifier))
                 return mp;
         }
 
         Mp3Program mp3Program = new Mp3Program();
-        mp3Program.programListItem = programListItem;
+        mp3Program.programListItem = program;
         return mp3Program;
     }
 
@@ -135,7 +135,7 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
     }
 
 
-    public void putProgramListItemList(int groupPosition, List<ProgramListItem> programListItems) {
+    public void putProgramListItemList(int groupPosition, List<Program> programListItems) {
         programListResultHashMap.put(groupPosition, programListItems);
     }
 }

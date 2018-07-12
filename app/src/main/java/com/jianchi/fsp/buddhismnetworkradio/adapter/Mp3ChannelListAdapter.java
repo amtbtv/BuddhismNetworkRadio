@@ -56,10 +56,10 @@ public class Mp3ChannelListAdapter extends BaseAdapter {
         convertView.setTag(holder);
 
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.getLecturename()));
+        txt.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.name));
 
         TextView info = (TextView) convertView.findViewById(R.id.info);
-        info.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.getLecturedate()));
+        info.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.recDate));
 
         return convertView;
     }

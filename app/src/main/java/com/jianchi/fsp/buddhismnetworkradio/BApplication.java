@@ -7,7 +7,6 @@ import android.net.NetworkInfo;
 
 import com.beardedhen.androidbootstrap.TypefaceProvider;
 import com.jianchi.fsp.buddhismnetworkradio.db.DBHelper;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
 import com.jianchi.fsp.buddhismnetworkradio.tools.CacheOKHttp;
 import com.tencent.bugly.Bugly;
 
@@ -16,11 +15,17 @@ import com.tencent.bugly.Bugly;
  * 保存状态，以便在屏幕旋转后使用
  */
 public class BApplication extends Application {
+    private static BApplication sApp;
+    public CacheOKHttp http;
+    public static BApplication getInstance() {
+        return sApp;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-
-        AmtbQuery.initOkHttpClient(new CacheOKHttp(this));
+        sApp = this;
+        http = new CacheOKHttp(this);
 
         //腾讯错误收集和自动升级服务注册
         Bugly.init(getApplicationContext(), "c833a75af3", false);

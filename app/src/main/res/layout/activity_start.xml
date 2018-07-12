@@ -21,7 +21,6 @@
             android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             toolbar:logo="@mipmap/ic_launcher"
-            toolbar:subtitle="@string/app_sub_title"
             toolbar:title="@string/app_name"
             />
 

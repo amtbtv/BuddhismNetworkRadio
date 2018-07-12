@@ -1,12 +1,14 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -15,11 +17,11 @@ import android.widget.VideoView;
 
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
-import com.jianchi.fsp.buddhismnetworkradio.api.Channel;
+import com.jianchi.fsp.buddhismnetworkradio.model.Live;
 import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 import com.jianchi.fsp.buddhismnetworkradio.video.VideoMenuManager;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     //region 变量区
     /**
@@ -48,7 +50,7 @@ public class MainActivity extends Activity {
      */
     BApplication app;
 
-    Channel channel;
+    Live channel;
 
     int errTimes = 0;
 
@@ -63,16 +65,25 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Window window = getWindow();
+        //隐藏标题栏
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //隐藏状态栏
+        //定义全屏参数
+        int flag= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        //设置当前窗体为全屏显示
+        window.setFlags(flag, flag);
+
         setContentView(R.layout.activity_main);
 
         //获取自定义APP，APP内存在着数据，若为旋转屏幕，此处记录以前的内容
         app = (BApplication)getApplication();
 
         Intent intent = getIntent();
-        channel = new Channel();
-        channel.title = intent.getStringExtra("title");
+        channel = new Live();
+        channel.name = intent.getStringExtra("name");
         channel.listUrl = intent.getStringExtra("listUrl");
-        channel.tvUrl = intent.getStringExtra("tvUrl");
+        channel.mediaUrl = intent.getStringExtra("mediaUrl");
 
         //判断是否连接到网络
         if(!app.isNetworkConnected()){
@@ -314,7 +325,7 @@ extra 	int: an extra code, specific to the error. Typically implementation depen
         else
             menuManager.displayMenu(true);//显示菜单
 
-        videoView.setVideoURI(Uri.parse(channel.tvUrl));
+        videoView.setVideoURI(Uri.parse(channel.mediaUrl));
         videoView.start();
 
         bt_play.setImageResource(R.mipmap.ic_stop);//设置按扭图标为暂停

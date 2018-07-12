@@ -1,6 +1,5 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,14 +14,13 @@ import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ManagerAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.Channel;
+import com.jianchi.fsp.buddhismnetworkradio.model.ChannelListResult;
+import com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbQuery;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.CategoryListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.CategoryListResult;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListItem;
-import com.jianchi.fsp.buddhismnetworkradio.xmlbean.ProgramListResult;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
+import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Mp3ManagerActivity extends AppCompatActivity {
@@ -71,7 +69,7 @@ public class Mp3ManagerActivity extends AppCompatActivity {
 
         lv.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+            public boolean onGroupClick(ExpandableListView parent, View v, final int groupPosition, long id) {
                 //如果分组被打开 直接关闭
                 if (lv.isGroupExpanded(groupPosition) ) {
                     lv.collapseGroup(groupPosition);
@@ -81,7 +79,26 @@ public class Mp3ManagerActivity extends AppCompatActivity {
                     } else {
                         //显示对话框
                         proBar.setVisibility(View.VISIBLE);
-                        new LoadProgramList(groupPosition).execute();
+                        Channel channel = (Channel)mp3ManagerAdapter.getGroup(groupPosition);
+                        AmtbApi<ProgramListResult> api = new AmtbApi<>(AmtbApi.takeProgramsUrl(channel.amtbid), new AmtbApiCallBack<ProgramListResult>() {
+                            @Override
+                            public void callBack(ProgramListResult obj) {
+                                proBar.setVisibility(View.GONE);
+                                if(obj!=null) {
+                                    if(obj.programs.size()>0) {
+                                        mp3ManagerAdapter.putProgramListItemList(groupPosition, obj.programs);
+                                        //mp3ManagerAdapter.notifyDataSetChanged();
+                                        //打开分组
+                                        lv.expandGroup(groupPosition, true);
+                                    } else {
+                                        Toast.makeText(Mp3ManagerActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
+                                    }
+                                } else {
+                                    Toast.makeText(Mp3ManagerActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        });
+                        api.execute(ProgramListResult.class);
                         return true;
                     }
                 }
@@ -92,71 +109,20 @@ public class Mp3ManagerActivity extends AppCompatActivity {
 
         //显示对话框
         proBar.setVisibility(View.VISIBLE);
-        new LoadCategoryList().execute();
-    }
-
-    class LoadProgramList extends AsyncTask<Integer, Integer, List<ProgramListResult>>{
-        int groupPosition;
-        public LoadProgramList(int groupPosition){
-            this.groupPosition = groupPosition;
-        }
-        @Override
-        protected List<ProgramListResult> doInBackground(Integer... integers) {
-            CategoryListItem categoryListItem = (CategoryListItem)mp3ManagerAdapter.getGroup(groupPosition);
-            return AmtbQuery.queryProgramListResult(categoryListItem.getAmtbid());
-        }
-
-        @Override
-        protected void onPostExecute(List<ProgramListResult> programListResultList) {
-            super.onPostExecute(programListResultList);
-            List<ProgramListItem> programListItems = new ArrayList<>();
-            for(ProgramListResult result : programListResultList){
-                programListItems.addAll(result.getList().getItem());
+        AmtbApi<ChannelListResult> api = new AmtbApi<>(AmtbApi.takeChannelsUrl(), new AmtbApiCallBack<ChannelListResult>() {
+            @Override
+            public void callBack(ChannelListResult obj) {
+                proBar.setVisibility(View.GONE);
+                if(obj!=null) {
+                        mp3ManagerAdapter = new Mp3ManagerAdapter(Mp3ManagerActivity.this, checkedMpsPrograms, obj);
+                        lv.setAdapter(mp3ManagerAdapter);
+                } else {
+                    Toast.makeText(Mp3ManagerActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                }
             }
-
-            if(programListItems.size()>0) {
-                mp3ManagerAdapter.putProgramListItemList(groupPosition, programListItems);
-                //mp3ManagerAdapter.notifyDataSetChanged();
-                //打开分组
-                lv.expandGroup(groupPosition, true);
-            } else {
-                Toast.makeText(Mp3ManagerActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
-            }
-            //异步加载
-            proBar.setVisibility(View.INVISIBLE);
-        }
+        });
+        api.execute(ChannelListResult.class);
     }
-
-    class LoadCategoryList extends AsyncTask<Integer, Integer, CategoryListResult>{
-
-        @Override
-        protected CategoryListResult doInBackground(Integer... integers) {
-            return AmtbQuery.queryCategoryListResult();
-        }
-
-        @Override
-        protected void onPostExecute(CategoryListResult categoryListResult) {
-            super.onPostExecute(categoryListResult);
-
-            //异步加载
-            proBar.setVisibility(View.INVISIBLE);
-            if(categoryListResult==null){
-                Toast.makeText(Mp3ManagerActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
-            } else {
-                mp3ManagerAdapter = new Mp3ManagerAdapter(Mp3ManagerActivity.this, checkedMpsPrograms, categoryListResult);
-                lv.setAdapter(mp3ManagerAdapter);
-            }
-        }
-    }
-
-    private Mp3Program checkMp3Program(Mp3Program mp3Program){
-        for(Mp3Program mp : checkedMpsPrograms){
-            if(mp.programListItem.getLectureid()==mp3Program.programListItem.getLectureid())
-                return mp;
-        }
-        return null;
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -9,35 +9,32 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.beardedhen.androidbootstrap.AwesomeTextView;
-import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.activity.ScheduleActivity;
-import com.jianchi.fsp.buddhismnetworkradio.api.Channel;
-import com.jianchi.fsp.buddhismnetworkradio.api.ChannelList;
+import com.jianchi.fsp.buddhismnetworkradio.model.Live;
+import com.jianchi.fsp.buddhismnetworkradio.model.LiveListResult;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
 
 /**
  * Created by fsp on 16-7-6.
  */
 public class TvChannelListAdapter extends BaseAdapter {
-    ChannelList channelList;
+    LiveListResult channelList;
     private LayoutInflater mInflater;
     Context context;
-    BApplication app;
-    public TvChannelListAdapter(Context context, ChannelList channelList, BApplication app){
+    public TvChannelListAdapter(Context context, LiveListResult channelList){
         this.context=context;
         this.channelList=channelList;
         this.mInflater = LayoutInflater.from(context);
-        this.app = app;
     }
     @Override
     public int getCount() {
-        return channelList.channels.size();
+        return channelList.lives.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return channelList.channels.get(position);
+        return channelList.lives.get(position);
     }
 
     @Override
@@ -52,21 +49,21 @@ public class TvChannelListAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        Channel holder = channelList.channels.get(position);
+        Live holder = channelList.lives.get(position);
         //观察convertView随ListView滚动情况
         if (convertView == null)
             convertView = mInflater.inflate(R.layout.item_tv_channel, null);
 
         convertView.setTag(holder);
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(TW2CN.getInstance(context).toLocal(holder.title));
+        txt.setText(TW2CN.getInstance(context).toLocal(holder.name));
         AwesomeTextView bt_showSchedule = (AwesomeTextView) convertView.findViewById(R.id.bt_showSchedule);
         bt_showSchedule.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Channel holder = channelList.channels.get(position);
+                Live holder = channelList.lives.get(position);
                 Intent intent = new Intent(context, ScheduleActivity.class);
-                intent.putExtra("title", holder.title);
+                intent.putExtra("name", holder.name);
                 intent.putExtra("listUrl", holder.listUrl);
                 context.startActivity(intent);
             }

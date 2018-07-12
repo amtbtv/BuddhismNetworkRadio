@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  public int id;
- public String title;
+ public String name;
  public String content;
  public String type;
  public String date;
@@ -37,8 +37,8 @@ public class Mp3RecDBManager extends RecDBManager {
         Rec rec = new Rec();
         rec._id = mp3Program.dbRecId;
         rec.type=recType;
-        rec.key1=String.valueOf(mp3Program.programListItem.getLectureno());
-        rec.key2=mp3Program.programListItem.getLecturename();
+        rec.key1=String.valueOf(mp3Program.programListItem.identifier);
+        rec.key2=mp3Program.programListItem.name;
         rec.info= new Gson().toJson(mp3Program);
         return rec;
     }
