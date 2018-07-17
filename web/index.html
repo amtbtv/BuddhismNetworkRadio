@@ -118,13 +118,13 @@ if(this._resizeData){if(a.x===this._resizeData.windowCoordinates.x&&a.y===this._
                     $(".weixin-tip").show();
                 }
                 
-                $.get('upgrade.json').done(function(data){
+                $.get('upgrade.json?t='+(new Date().getTime())).done(function(data){
 					$("#versionName").text(data.data.versionName);
 					$("#upgradeNotes").text(data.data.upgradeNotes);
 					$("#durl").attr("href",data.data.apkUrl); ;
 				});
 				
-                $.get('upgradetv.json').done(function(data){
+                $.get('upgradetv.json?t='+(new Date().getTime())).done(function(data){
 					$("#versionNameTv").text(data.data.versionName);
 					$("#upgradeNotesTv").text(data.data.upgradeNotes);
 					$("#durlTv").attr("href",data.data.apkUrl); ;
