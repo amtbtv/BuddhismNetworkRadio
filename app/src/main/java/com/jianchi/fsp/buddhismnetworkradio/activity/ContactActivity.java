@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +14,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.beardedhen.androidbootstrap.BootstrapLabel;
@@ -26,6 +29,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class ContactActivity extends AppCompatActivity {
 
@@ -43,6 +50,8 @@ public class ContactActivity extends AppCompatActivity {
 
     BApplication app;
 
+    ProgressBar proBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +60,8 @@ public class ContactActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         app = (BApplication) getApplication();
+
+        proBar = (ProgressBar) findViewById(R.id.proBar);
 
         version = (BootstrapLabel) findViewById(R.id.version);
 
@@ -122,16 +133,14 @@ public class ContactActivity extends AppCompatActivity {
         }
         File paper = new File(initDir, "paper.png");
         if (!paper.exists()) {
-            try {
-                InputStream in = getResources().openRawResource(R.raw.amtbpng);
-                FileOutputStream out = new FileOutputStream(paper);
-                copyFile(in, out);
-                in.close();
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            String url = getString(R.string.amtb_png_url);
+            DownPicTask task = new DownPicTask();
+            task.execute(url, paper.getAbsolutePath());
+        } else {
+            shareImage2(paper);
         }
+    }
+    void shareImage2(File paper){
         Uri imageUri = null;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             imageUri = Uri.fromFile(paper);
@@ -151,6 +160,52 @@ public class ContactActivity extends AppCompatActivity {
         shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
         shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.app_name)));
+    }
+
+
+    class DownPicTask extends AsyncTask<String, Integer, String>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            proBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String url = strings[0];
+            String filePath = strings[1];
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).build();
+            try {
+                Response response = client.newCall(request).execute();
+                if(response.isSuccessful()){
+                    InputStream in = response.body().byteStream();
+                    File paper = new File(filePath);
+                    FileOutputStream out = new FileOutputStream(paper);
+                    copyFile(in, out);
+                    in.close();
+                    out.close();
+                }
+                response.close();
+                return filePath;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            proBar.setVisibility(View.GONE);
+            if(s!=null){
+                File paper = new File(s);
+                shareImage2(paper);
+            } else {
+                Toast.makeText(ContactActivity.this, R.string.share_amtb_png_fail, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     public void copyFile(InputStream in, OutputStream out) throws IOException {

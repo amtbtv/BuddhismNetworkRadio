@@ -57,8 +57,11 @@ public class AmtbApi<T extends Result> extends AsyncTask<Class<T>, Integer, T> {
     protected T doInBackground(Class<T>... parms) {
         String json = BApplication.getInstance().http.take(url);
         if (!json.isEmpty()) {
-            T val = new Gson().fromJson(json, parms[0]);
-            return val;
+            try {
+                T val = new Gson().fromJson(json, parms[0]);
+                return val;
+            } catch (Exception e){
+            }
         }
         return null;
     }

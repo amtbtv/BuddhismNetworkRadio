@@ -56,10 +56,10 @@
     <string name="dialog_cancle">关闭</string>
     <string name="bt_invite_friends">向好友推荐</string>
     <string name="bt_check_upgrade">检测更新</string>
-    <string name="down_url">http://amtb.sfzd5.com/upgrade.json</string>
+    <string name="amtb_png_url">http://www.amtb.cn/amtbapp/amtbpng.png</string>
     <string name="dzxx_url">amtb@amtb.tw</string>
     <string name="pl_url">http://www.plurk.com/amtbtw</string>
-    <string name="site_url">http://www.amtb.tw/</string>
+    <string name="site_url">http://www.amtb.cn/amtbapp/</string>
     <string name="txwb_url">http://t.qq.com/amtbhz</string>
     <string name="xlwb_url">http://weibo.com/amtbtw</string>
     <string name="devxx_url">amtb@mail.sfzd5.com</string>
@@ -100,4 +100,5 @@
     <string name="stop_to_remove">删除下载任务必须先停止下载</string>
     <string name="load_download_list_over">添加MP3 %d 個，請點選下載。</string>
     <string name="load_fail_reload">载入数据出错，请重新打开</string>
+    <string name="share_amtb_png_fail">分享时出错</string>
 </resources>

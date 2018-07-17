@@ -1,7 +1,7 @@
 {
 	"data": {
-		"apkUrl": "http://amtb.sfzd5.com/amtb.apk",
-		"upgradeNotes": "更新內容\n1.直接从弘化网获取数据，感谢杜师兄帮助。\n2.修复部分手机视频不能全屏的问题。\n",
-		"versionName": "4.0.1"
+		"apkUrl": "http://amtbsg.cloudapp.net/redirect/v/amtbapp/amtb.apk",
+		"upgradeNotes": "更新內容\n网站迁移到http://www.amtb.cn/\n",
+		"versionName": "4.0.2"
 	}
 }
