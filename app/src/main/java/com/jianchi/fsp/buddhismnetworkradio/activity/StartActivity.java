@@ -1,5 +1,6 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,8 +25,10 @@ import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
 import com.jianchi.fsp.buddhismnetworkradio.model.Live;
 import com.jianchi.fsp.buddhismnetworkradio.model.LiveListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
+import com.jianchi.fsp.buddhismnetworkradio.mp3service.BMp3Service;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
+import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 
 import java.util.List;
 
@@ -85,7 +88,36 @@ public class StartActivity extends AppCompatActivity {
             Toast.makeText(StartActivity.this, R.string.no_network, Toast.LENGTH_LONG).show();
         }
 
+        String startWith = getIntent().getStringExtra("StartWith");
+        if(startWith!=null && startWith.equals("StartWith_MP3_SERVICE")){
+            startActivity(new Intent(StartActivity.this, Mp3PlayerActivity.class));
+        }
+    }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+    }
+
+    /**
+     * 网络连接失败后关闭程序
+     */
+    void networkFailClose(){
+        Toast.makeText(this, R.string.wljwl, Toast.LENGTH_LONG).show();//提示信息
+        MyLog.v("onCreate", getString(R.string.wljwl));
+        //提示过信息5秒后关闭程序
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //没有连接到网络，关系程序
+                finish();
+            }
+        }).start();
     }
 
     void setUi(){
@@ -104,19 +136,22 @@ public class StartActivity extends AppCompatActivity {
                         startActivity(intent);
                     } else {
                         Mp3Program mp3Program = (Mp3Program) view.getTag();
+
+                        Intent startIntent = new Intent(StartActivity.this, BMp3Service.class);
+                        startIntent.putExtra("dbRecId", mp3Program.dbRecId);
+                        ComponentName name = startService(startIntent);
+
                         Intent intent = new Intent(StartActivity.this, Mp3PlayerActivity.class);
-                        //启动时判断是否已经开始播放音频节目了，并传入不同的参数
-                        intent.putExtra("dbRecId", mp3Program.dbRecId);
                         startActivity(intent);
                     }
                 }
             }
         });
 
-
         //载入音频节目列表数据，并排序
-        Mp3RecDBManager db = new Mp3RecDBManager();
+        Mp3RecDBManager db = new Mp3RecDBManager(this);
         mp3Programs = db.getAllMp3Rec();
+        db.close();
         mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
 
         //默认初始为视频节目
@@ -214,8 +249,9 @@ public class StartActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == MANAGER_MP3_RESULT) {
             //重新载入MP3 list
-            Mp3RecDBManager db = new Mp3RecDBManager();
+            Mp3RecDBManager db = new Mp3RecDBManager(this);
             mp3Programs = db.getAllMp3Rec();
+            db.close();
             mp3ChannelListAdapter = new Mp3ChannelListAdapter(StartActivity.this, mp3Programs);
             lv_channel.setAdapter(mp3ChannelListAdapter);
         }

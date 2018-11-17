@@ -75,7 +75,6 @@ public class DownLoadActivity extends AppCompatActivity {
     BootstrapButton bt_stop;
     BootstrapButton bt_start;
 
-    DownloadTaskInfoDBManager db;
     List<DownloadTaskInfo> taskInfos;
 
     TaskInfoAdapter taskInfoAdapter;
@@ -129,7 +128,9 @@ public class DownLoadActivity extends AppCompatActivity {
         bt_clean.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                 db.clean();
+                db.close();
                 taskInfos.clear();
                 taskInfoAdapter.notifyDataSetChanged();
             }
@@ -141,7 +142,9 @@ public class DownLoadActivity extends AppCompatActivity {
                 while (it.hasNext()){
                     DownloadTaskInfo d = it.next();
                     if(d.state.equals(TaskState.完成.toString())) {
+                        DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                         db.del(d);
+                        db.close();
                         it.remove();
                     }
                 }
@@ -152,8 +155,11 @@ public class DownLoadActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(delTaskInfos.size()>0) {
+                    DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                     for (DownloadTaskInfo d : delTaskInfos)
                         db.del(d);
+                    db.close();
+
                     taskInfos.removeAll(delTaskInfos);
                     taskInfoAdapter.notifyDataSetChanged();
                 }
@@ -163,8 +169,9 @@ public class DownLoadActivity extends AppCompatActivity {
         bottom_del_menu = (LinearLayout) findViewById(R.id.bottom_del_menu);
         bottom_menu = (LinearLayout) findViewById(R.id.bottom_menu);
 
-        db = new DownloadTaskInfoDBManager();
+        DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(this);
         taskInfos = db.getAll();
+        db.close();
         taskInfoAdapter = new TaskInfoAdapter();
         listView.setAdapter(taskInfoAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -182,7 +189,9 @@ public class DownLoadActivity extends AppCompatActivity {
                     if (d.checked.equals("F")) {
                         d.checked = "T";
                         d.state = TaskState.等待开始.toString();
+                        DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                         db.update(d);
+                        db.close();
                         taskInfoAdapter.notifyDataSetChanged();
                         if (serialQueue != null) {
                             File parentFile = new File(folderLocation);
@@ -197,7 +206,9 @@ public class DownLoadActivity extends AppCompatActivity {
                         } else {
                             d.checked = "F";
                             d.state = TaskState.未选择.toString();
+                            DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                             db.update(d);
+                            db.close();
                             taskInfoAdapter.notifyDataSetChanged();
                         }
                     }
@@ -366,7 +377,11 @@ public class DownLoadActivity extends AppCompatActivity {
                                     if(d.fileName.equals(taskInfo.fileName))
                                         continue;
                                 }
+
+                                DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                                 taskInfo.dbRecId = db.add(taskInfo);
+                                db.close();
+
                                 taskInfos.add(taskInfo);
                             }
                             taskInfoAdapter.notifyDataSetChanged();
@@ -497,7 +512,10 @@ public class DownLoadActivity extends AppCompatActivity {
                 DownloadTaskInfo taskInfo = (DownloadTaskInfo) task.getTag();
                 taskInfo.state = TaskState.完成.toString();
                 taskInfo.checked = "F";
+
+                DownloadTaskInfoDBManager db = new DownloadTaskInfoDBManager(DownLoadActivity.this);
                 db.update(taskInfo);
+                db.close();
 
                 taskInfoAdapter.notifyDataSetChanged();
             } else if(EndCause.ERROR == cause){

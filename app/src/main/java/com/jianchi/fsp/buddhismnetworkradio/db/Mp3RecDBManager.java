@@ -1,5 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.db;
 
+import android.content.Context;
+
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 
@@ -15,8 +17,8 @@ import java.util.List;
  */
 
 public class Mp3RecDBManager extends RecDBManager {
-    public Mp3RecDBManager() {
-        super();
+    public Mp3RecDBManager(Context context) {
+        super(context);
         recType="mp3rec";
     }
 

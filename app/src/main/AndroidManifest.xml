@@ -37,6 +37,7 @@
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -84,9 +85,13 @@
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.DownloadSettingActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_download_setting"></activity>
+            android:label="@string/title_activity_download_setting"
+            android:screenOrientation="portrait" />
 
+        <service
+            android:name=".mp3service.BMp3Service"
+            android:enabled="true"
+            android:exported="false"></service>
     </application>
 
 </manifest>

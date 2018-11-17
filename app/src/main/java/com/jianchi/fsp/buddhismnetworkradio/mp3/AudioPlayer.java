@@ -49,8 +49,11 @@ public class AudioPlayer {
         return mPlayer;
     }
 
-    public AudioPlayer(Context context, EventListener eventListener){
-        mEventListener = eventListener;
+    public void setEventListener(EventListener mEventListener) {
+        this.mEventListener = mEventListener;
+    }
+
+    public AudioPlayer(Context context){
         mContext = context;
 
         //初始化播放器
@@ -103,7 +106,8 @@ public class AudioPlayer {
 
     public void play() {
         mPlayer.setPlayWhenReady(true);
-        mEventListener.start();
+        if(mEventListener!=null)
+            mEventListener.start();
     }
 
     public void release(){

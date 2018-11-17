@@ -12,20 +12,13 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "rec.db";
     private static final int DATABASE_VERSION = 3;
-    private static DBHelper helper;
     //private Context context;
 
-    private DBHelper(Context context) {
+    public DBHelper(Context context) {
         //CursorFactory设置为null,使用默认值
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         //this.context = context;
     }
-
-    public static void init(Context context){
-        helper = new DBHelper(context);
-    }
-
-    public static DBHelper getHelper(){ return helper;}
 
     /*
     数据库第一次被创建时onCreate会被调用

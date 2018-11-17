@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">儒釋道網路電視台</string>
+    <string name="app_name">儒釋道網路電台</string>
     <string name="navigation_drawer_open">打開導航</string>
     <string name="navigation_drawer_close">關閉導航</string>
     <string name="action_select_server">選擇線路</string>
@@ -101,4 +101,5 @@
     <string name="load_download_list_over">添加MP3 %d 个，请点选下载。</string>
     <string name="load_fail_reload">載入數據出錯，請重新打開</string>
     <string name="share_amtb_png_fail">分享時出錯</string>
+    <string name="stop_service">關閉退出</string>
 </resources>

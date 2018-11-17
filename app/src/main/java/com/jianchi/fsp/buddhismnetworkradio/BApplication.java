@@ -27,12 +27,10 @@ public class BApplication extends Application {
         sApp = this;
         http = new CacheOKHttp(this);
 
-        //腾讯错误收集和自动升级服务注册
-        Bugly.init(getApplicationContext(), "c833a75af3", false);
+        //腾讯错误收集和自动升级服务注册c833a75af3，原来的账号出问题了，又建了一个
+        Bugly.init(getApplicationContext(), "184f3da991", false);
 
         TypefaceProvider.registerDefaultIconSets();
-
-        DBHelper.init(this);
 
     }
 

@@ -1,6 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.db;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -16,11 +17,16 @@ public class RecDBManager {
     public SQLiteDatabase db;
     public String recType = "rec";
 
-    public RecDBManager() {
-        DBHelper helper = DBHelper.getHelper();
+    public RecDBManager(Context context) {
+        DBHelper helper = new DBHelper(context);
         //因为getWritableDatabase内部调用了mContext.openOrCreateDatabase(mName, 0, mFactory);
         //所以要确保context已初始化,我们可以把实例化DBManager的步骤放在Activity的onCreate里
         db = helper.getWritableDatabase();
+    }
+
+    public void close(){
+        db.close();
+        db = null;
     }
 
     public long count()

@@ -19,14 +19,14 @@ import java.util.List;
 public class Mp3ListAdapter extends BaseAdapter {
     //volid  mp3列表
     public List<String> mediaList;
-    public Mp3Program mp3Program;
     private LayoutInflater mInflater;
     Context context;
+    public int curMediaIdx;
 
-    public Mp3ListAdapter(Context context, Mp3Program mp3Program, List<String> mediaList){
+    public Mp3ListAdapter(Context context, List<String> mediaList, int curMediaIdx){
         this.context=context;
         this.mediaList = mediaList;
-        this.mp3Program = mp3Program;
+        this.curMediaIdx = curMediaIdx;
         this.mInflater = LayoutInflater.from(context);
     }
 
@@ -60,7 +60,7 @@ public class Mp3ListAdapter extends BaseAdapter {
         convertView.setTag(mp3);
 
         AwesomeTextView icon_play = (AwesomeTextView) convertView.findViewById(R.id.icon_play);
-        if(position == mp3Program.curMediaIdx){
+        if(position == curMediaIdx){
             icon_play.setFontAwesomeIcon("fa-music");
             convertView.setBackgroundResource(R.color.bootstrap_brand_warning);
         } else {

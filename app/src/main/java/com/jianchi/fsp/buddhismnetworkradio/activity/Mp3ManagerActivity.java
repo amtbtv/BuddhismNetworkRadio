@@ -43,8 +43,9 @@ public class Mp3ManagerActivity extends AppCompatActivity {
         //加载时显示进度
         proBar = (ProgressBar) findViewById(R.id.mp3ProBar);
 
-        Mp3RecDBManager db = new Mp3RecDBManager();
+        Mp3RecDBManager db = new Mp3RecDBManager(this);
         checkedMpsPrograms = db.getAllMp3Rec();
+        db.close();
 
         lv = (ExpandableListView) findViewById(R.id.lv_mp3);
         lv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -54,12 +55,14 @@ public class Mp3ManagerActivity extends AppCompatActivity {
                 if(checkedMpsPrograms.contains(mp3Program)){
                     //删除
                     checkedMpsPrograms.remove(mp3Program);
-                    Mp3RecDBManager db = new Mp3RecDBManager();
+                    Mp3RecDBManager db = new Mp3RecDBManager(Mp3ManagerActivity.this);
                     db.delMp3(mp3Program);
+                    db.close();
                 } else {
                     //添加
-                    Mp3RecDBManager db = new Mp3RecDBManager();
+                    Mp3RecDBManager db = new Mp3RecDBManager(Mp3ManagerActivity.this);
                     mp3Program.dbRecId = db.add(mp3Program);
+                    db.close();
                     checkedMpsPrograms.add(mp3Program);
                 }
                 mp3ManagerAdapter.notifyDataSetChanged();

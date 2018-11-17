@@ -1,5 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.db;
 
+import android.content.Context;
+
 import com.jianchi.fsp.buddhismnetworkradio.mp3.DownloadTaskInfo;
 
 import java.util.ArrayList;
@@ -12,8 +14,8 @@ import java.util.List;
  */
 
 public class DownloadTaskInfoDBManager extends RecDBManager {
-    public DownloadTaskInfoDBManager() {
-        super();
+    public DownloadTaskInfoDBManager(Context context) {
+        super(context);
         recType="download";
     }
 
