@@ -110,18 +110,21 @@ public class BMp3Service extends Service {
             });
             api.execute(FileListResult.class);
         }
-        return super.onStartCommand(intent, flags, startId);
+        //return super.onStartCommand(intent, flags, startId);
+        //return super.onStartCommand(intent, START_FLAG_REDELIVERY, startId);
+        return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
         //保存进度
         if(audioPlayer!=null) {
+            saveMp3Program();
+
             audioPlayer.stop();
             audioPlayer.release();
             //unregisterMp3Receiver();
             mediaNotificationManager.stopNotification();
-            saveMp3Program();
         }
         super.onDestroy();
     }
