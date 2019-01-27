@@ -36,7 +36,7 @@ public class MediaNotificationManager {
         contentIntent = PendingIntent.getActivity(context, NOTI_CTRL_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    public void startNotification(String name, String msg) {
+    public Notification startNotification(String name, String msg) {
 
         Notification notification = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -59,6 +59,7 @@ public class MediaNotificationManager {
         }
         notification.flags = notification.FLAG_NO_CLEAR;
         notificationManager.notify(NOTI_CTRL_ID, notification);
+        return notification;
     }
 
     public void stopNotification() {

@@ -1,6 +1,8 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -9,10 +11,21 @@ import android.widget.Toast;
 
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+
+import java.util.Locale;
 
 public class ScheduleActivity extends AppCompatActivity {
     BApplication app;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

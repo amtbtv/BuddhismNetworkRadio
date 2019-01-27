@@ -1,7 +1,9 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
@@ -20,12 +22,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 
 public class PickDownloadFolderActivity extends AppCompatActivity {
 
@@ -40,6 +46,12 @@ public class PickDownloadFolderActivity extends AppCompatActivity {
 
     Button bt_new_folder;
     Button bt_ok;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

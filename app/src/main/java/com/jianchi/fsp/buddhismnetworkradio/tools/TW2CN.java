@@ -1,7 +1,9 @@
 package com.jianchi.fsp.buddhismnetworkradio.tools;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.util.DisplayMetrics;
 
 import com.jianchi.fsp.buddhismnetworkradio.R;
 
@@ -20,11 +22,6 @@ public class TW2CN {
     private Map<Character, Character> st ;
     static private TW2CN instance;
     private boolean isTW;
-    private TW2CN(){
-        Locale locale = Locale.getDefault();
-        String country = locale.getLanguage().toUpperCase();
-        isTW = !country.equals("ZH");
-    }
 
     public String toLocal(String str){
         if(isTW)
@@ -67,6 +64,9 @@ public class TW2CN {
                 throw new IllegalStateException("Can not create new instance of JChineseConvertor : " + e.getMessage(), e);
             }
         }
+        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context, "setting");
+        String country = sharedPreferencesHelper.getString("local");
+        instance.isTW = !country.equals("ZH");
         return instance;
     }
 

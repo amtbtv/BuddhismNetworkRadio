@@ -1,7 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
-import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -9,13 +9,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
-import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -24,18 +22,15 @@ import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ListAdapter;
-import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
-import com.jianchi.fsp.buddhismnetworkradio.model.FileListResult;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.AudioPlayer;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.MediaNotificationManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileItem;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 import com.jianchi.fsp.buddhismnetworkradio.mp3service.BMp3Service;
 import com.jianchi.fsp.buddhismnetworkradio.mp3service.BMp3ServiceBinder;
 import com.jianchi.fsp.buddhismnetworkradio.mp3service.BMp3ServiceListener;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
-import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
-import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
+import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.List;
 
@@ -57,6 +52,18 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
     BMp3ServiceBinder binder;
 
+    WebView webView;
+
+    boolean isShowHtml = true;
+
+    Mp3Program mp3Program;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
+
     BMp3ServiceListener bMp3ServiceListener = new BMp3ServiceListener() {
         @Override
         public void playChange(final int index) {
@@ -65,23 +72,63 @@ public class Mp3PlayerActivity extends AppCompatActivity {
                 public void run() {
                     mp3ListAdapter.curMediaIdx = index;
                     mp3ListAdapter.notifyDataSetChanged();
+
+                    FileItem fileItem = (FileItem) mp3ListAdapter.getItem(index);
+                    if(fileItem.txt==1) {
+                        webView.setVisibility(isShowHtml? View.VISIBLE : View.INVISIBLE);
+
+                        String mp3FileName = fileItem.file;
+                        String itemId = mp3FileName.substring(0, mp3FileName.length() - 4);
+                        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Mp3PlayerActivity.this, "setting");
+                        String country = sharedPreferencesHelper.getString("local");
+                        country = country.replace("\"","" );
+                        if (country.equals("ZH")) country = "CN"; else country = "TW";
+                        webView.loadUrl(UrlHelper.makeMp3DocUrl(itemId, country));
+                    }
                 }
             });
         }
 
         @Override
-        public void downloadMp3s(final Mp3Program mp3Program, final List<String> mp3s) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    setTitle(TW2CN.getInstance(Mp3PlayerActivity.this).toLocal(mp3Program.programListItem.name));
-                    mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3s, mp3Program.curMediaIdx);
-                    lv.setAdapter(mp3ListAdapter);
+        public void downloadMp3s(final Mp3Program mp3Program, final List<FileItem> mp3s) {
+            if(mp3s==null){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(Mp3PlayerActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                    }
+                });
+            } else {
+                Mp3PlayerActivity.this.mp3Program = mp3Program;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setTitle(TW2CN.getInstance(Mp3PlayerActivity.this).toLocal(mp3Program.programListItem.name));
+                        mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3s, mp3Program.curMediaIdx);
+                        lv.setAdapter(mp3ListAdapter);
+                        lv.setSelection(mp3Program.curMediaIdx);
 
-                    //载入结束
-                    proBar.setVisibility(View.INVISIBLE);
-                }
-            });
+                        FileItem fileItem = mp3s.get(mp3Program.curMediaIdx);
+                        if (fileItem.txt == 1) {
+                            webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
+
+                            String mp3FileName = fileItem.file;
+                            String itemId = mp3FileName.substring(0, mp3FileName.length() - 4);
+
+                            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Mp3PlayerActivity.this, "setting");
+                            String country = sharedPreferencesHelper.getString("local");
+                            if (country.equals("ZH")) country = "CN";
+                            else country = "TW";
+
+                            webView.loadUrl(UrlHelper.makeMp3DocUrl(itemId, country));
+                        }
+
+                        mp3ListAdapter.notifyDataSetChanged();
+                        //载入结束
+                        proBar.setVisibility(View.INVISIBLE);
+                    }
+                });
+            }
         }
 
         @Override
@@ -113,6 +160,8 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         proBar = (ProgressBar) findViewById(R.id.mp3ProBar);
+        webView = (WebView) findViewById(R.id.webView);
+        webView.setVisibility(isShowHtml? View.VISIBLE : View.INVISIBLE);
 
         lv = (ListView) findViewById(R.id.lv_mp3);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -188,6 +237,16 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
             finish();
             return true;
+        } else if (id == R.id.action_show_html){
+            FileItem fileItem = null;
+            if(mp3ListAdapter!=null)
+                fileItem = (FileItem) mp3ListAdapter.getItem(mp3Program.curMediaIdx);
+            if(fileItem!=null && fileItem.txt==1) {
+                isShowHtml = !isShowHtml;
+                webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
+            } else {
+                Toast.makeText(this, R.string.no_doc, Toast.LENGTH_LONG).show();
+            }
         }
 
         return super.onOptionsItemSelected(item);

@@ -1,50 +1,28 @@
 package com.jianchi.fsp.buddhismnetworkradio.tools;
 
-import com.jianchi.fsp.buddhismnetworkradio.BApplication;
-import com.jianchi.fsp.buddhismnetworkradio.model.Result;
 import android.os.AsyncTask;
+
 import com.google.gson.Gson;
+import com.jianchi.fsp.buddhismnetworkradio.BApplication;
+import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.model.Result;
+
+import java.io.IOException;
 
 public class AmtbApi<T extends Result> extends AsyncTask<Class<T>, Integer, T> {
 
-    //{"channels":[{"name":"\u963f\u5f4c\u9640\u7d93","amtbid":"1"},{"name":"\u7121\u91cf\u58fd\u7d93","amtbid":"2"}]}
-    private static final String livesUrl  = "http://amtbapi.hwadzan.com/amtbtv/channels/live";
-    private static final String channelsUrl  = "http://amtbapi.hwadzan.com/amtbtv/channels/mp3";
-
-    //{"files":["02-012-0001.mp4","02-012-0002.mp4"]}
-    private static final String filesUrl  = "http://amtbapi.hwadzan.com/amtbtv/%s/mp3";
-
-    //{"programs":[{"name":"\u7121\u91cf\u58fd\u7d93\u5927\u610f","identifier":"02-002","recDate":"1992.12","recAddress":"\u7f8e\u570b","picCreated":"1","mp4":"1","mp3":"1"}]}
-    private static final String programsUrl  = "http://amtbapi.hwadzan.com/amtbtv/%d/mp3";
-
-    //最近视频，暂时先不使用此功能
-    private static final String newMediasUrl = "http://amtbapi.hwadzan.com/amtbtv/newmedias/mp3?limit=20";
-
-    public static String takeLivesUrl(){
-        return livesUrl;
-    }
-    public static String takeChannelsUrl(){
-        return channelsUrl;
-    }
-
-    public static String takeFilesUrl(String identifier){
-        return String.format(filesUrl, identifier);
-    }
-
-    public static String takeProgramsUrl(int amtbid){
-        return String.format(programsUrl, amtbid);
-    }
-
-    //图片地址
-    //http://amtbsg.cloudapp.net/redirect/v/amtbtv/pic/02-037_bg.jpg
-    //http://amtbsg.cloudapp.net/redirect/v/amtbtv/pic/02-037_card.jpg
-
     AmtbApiCallBack<T> amtbApiCallBack;
     String url;
+    String charset;
 
     public AmtbApi(String url, AmtbApiCallBack<T> amtbApiCallBack){
+        this(url, "UTF-8", amtbApiCallBack);
+    }
+
+    public AmtbApi(String url, String charset, AmtbApiCallBack<T> amtbApiCallBack){
         this.url = url;
         this.amtbApiCallBack = amtbApiCallBack;
+        this.charset = charset;
     }
 
     @Override
@@ -55,15 +33,43 @@ public class AmtbApi<T extends Result> extends AsyncTask<Class<T>, Integer, T> {
 
     @Override
     protected T doInBackground(Class<T>... parms) {
-        String json = BApplication.getInstance().http.take(url);
-        if (!json.isEmpty()) {
-            try {
-                T val = new Gson().fromJson(json, parms[0]);
-                return val;
-            } catch (Exception e){
+        Class<T> _class = parms[0];
+        try {
+            String json = BApplication.getInstance().http.take(url, charset);
+            if (!json.isEmpty()) {
+                try {
+                    T val = new Gson().fromJson(json, parms[0]);
+                    val.isSucess = true;
+                    val.msg = BApplication.getInstance().getResourceString(R.string.api_msg_download_success);
+                    return val;
+                } catch (Exception e){
+                    return createFailT(_class, BApplication.getInstance().getResourceString(R.string.api_msg_parse_fail));
+                }
+            } else {
+                return createFailT(_class, BApplication.getInstance().getResourceString(R.string.api_msg_download_fail));
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return createFailT(_class, BApplication.getInstance().getResourceString(R.string.api_msg_network_fail));
+        } catch (MyHttpExpception myHttpExpception) {
+            myHttpExpception.printStackTrace();
+            return createFailT(_class, myHttpExpception.getMessage());
+        } catch (Exception en){
+            return createFailT(_class, BApplication.getInstance().getResourceString(R.string.api_unknow_fail));
+        }
+    }
+
+    private T createFailT(Class<T> _class, String msg){
+        try {
+            T val  = _class.newInstance();
+            val.isSucess = false;
+            val.msg = msg;
+            return val;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         return null;
     }
-
 }

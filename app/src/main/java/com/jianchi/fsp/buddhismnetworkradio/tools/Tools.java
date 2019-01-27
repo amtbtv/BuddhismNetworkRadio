@@ -1,15 +1,17 @@
 package com.jianchi.fsp.buddhismnetworkradio.tools;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.Build;
+import android.util.DisplayMetrics;
+
+import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 /**
  * Created by fsp on 17-8-17.
@@ -31,6 +33,23 @@ public class Tools {
         str = str.replace("&#039;","'");
         str = str.replace("&amp;","&");
         return str;
+    }
+
+    public static void changeAppLanguage(Context context) {
+        Resources resources = context.getResources();
+        Configuration configuration = resources.getConfiguration();
+
+        // app locale
+        Locale locale = BApplication.country.equals("ZH") ? Locale.SIMPLIFIED_CHINESE : Locale.TRADITIONAL_CHINESE;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            configuration.setLocale(locale);
+        } else {
+            configuration.locale = locale;
+        }
+        // updateConfiguration
+        DisplayMetrics dm = resources.getDisplayMetrics();
+        resources.updateConfiguration(configuration, dm);
     }
 
     public static String readRawFile(int rawId, Context context)
@@ -65,20 +84,4 @@ public class Tools {
         return content;
     }
 
-
-    private String downHtml(String url) {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).removeHeader("User-Agent").addHeader("User-Agent",
-                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0").build();
-        Call call = client.newCall(request);
-
-        try {
-            Response response = call.execute();
-            String html = new String(response.body().bytes(), "utf-8");
-            return html;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
 }

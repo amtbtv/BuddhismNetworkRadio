@@ -5,7 +5,18 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Cache;
 import okhttp3.CacheControl;
@@ -22,6 +33,7 @@ public class CacheOKHttp {
 
     OkHttpClient client;
     CacheControl cacheControl;
+    CacheControl cacheControlPic;
 
     public static Headers headers = new Headers.Builder()
             .add("Connection", "keep-alive")
@@ -46,47 +58,62 @@ public class CacheOKHttp {
         Cache cache = new Cache(cacheFile,cacheSize);
 
         cacheControl = new CacheControl.Builder()
-                .maxStale(5, TimeUnit.DAYS)
+                .maxStale(1, TimeUnit.DAYS)
                 .build();
-        client = new OkHttpClient.Builder()
-                .cache(cache)
+        cacheControlPic = new CacheControl.Builder()
+                .maxStale(365, TimeUnit.DAYS)
+                .build();
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            TrustAllCerts trustAllCerts = new TrustAllCerts();
+            sc.init(null, new TrustManager[]{trustAllCerts}, new SecureRandom());
+            builder.sslSocketFactory(sc.getSocketFactory(), trustAllCerts);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+        builder.hostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        });
+
+        builder.cache(cache)
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
-
+                .readTimeout(30, TimeUnit.SECONDS);
+        client = builder.build();
     }
 
-    public String take(String url) {
+
+    private class TrustAllCerts implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {return new X509Certificate[0];}
+    }
+
+    public String take(String url, String charset) throws IOException, MyHttpExpception {
         Request request = new Request.Builder().headers(headers).cacheControl(cacheControl).url(url).build();
-        try {
-            Response response = client.newCall(request).execute();
-            if(response.isSuccessful()){
+        Response response = client.newCall(request).execute();
+        if (response.isSuccessful()) {
+            if(charset.toUpperCase().equals("UTF-8")) {
                 return response.body().string();
+            } else {
+                return new String(response.body().bytes(), charset);//"BIG5"
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            throw new MyHttpExpception("未成功返回");
         }
-        return "";
-    }
-    /**
-     * 将下载并图片存入文件缓存
-     */
-    public String takeXML(String url)
-    {
-        String xmlStr = "";
-        Request request = new Request.Builder().headers(headers).cacheControl(cacheControl).url(url).build();
-        try {
-            Response response = client.newCall(request).execute();
-            if(response.isSuccessful()) {
-                if (response.body() != null) {
-                    xmlStr = new String(response.body().bytes(), "BIG5");
-                }
-            }
-            response.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return xmlStr;
     }
 }

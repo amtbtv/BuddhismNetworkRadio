@@ -91,6 +91,13 @@
                     app:badgeText="@string/dzxx_url" />
 
                 <com.beardedhen.androidbootstrap.BootstrapButton
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="left"
+                    android:text="@string/wxh"
+                    app:badgeText="amtbhz" />
+
+                <com.beardedhen.androidbootstrap.BootstrapButton
                     android:id="@+id/bt_devxx"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
@@ -104,20 +111,6 @@
                     android:layout_height="48dp"
                     android:gravity="left"
                     android:text="@string/bt_invite_friends" />
-
-                <com.beardedhen.androidbootstrap.BootstrapButton
-                    android:id="@+id/bt_check_upgrade"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:gravity="left"
-                    android:text="@string/bt_check_upgrade" />
-
-                <com.beardedhen.androidbootstrap.BootstrapButton
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:gravity="left"
-                    android:text="@string/wxh"
-                    app:badgeText="amtbhz" />
             </com.beardedhen.androidbootstrap.BootstrapButtonGroup>
 
             <ImageView

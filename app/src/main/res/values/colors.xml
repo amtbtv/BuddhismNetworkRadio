@@ -4,10 +4,11 @@
     <color name="colorPrimaryDark">#00796b</color>
     <color name="colorAccent">#00BFA5</color>
 
-    <color name="colorTitle">#ffffff</color>
+    <color name="colorTitle">#FFFFFF</color>
     <color name="videoMsg">#ffffff</color>
     <color name="videoMsgBG">#55888888</color>
     <color name="programTypeBG">#88CCCCCC</color>
     <color name="videoBG">#000000</color>
     <color name="videoMenuBG">#22222222</color>
+    <color name="tab_background">#22009688</color>
 </resources>

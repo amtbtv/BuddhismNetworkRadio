@@ -1,6 +1,8 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,10 +26,14 @@ import com.jianchi.fsp.buddhismnetworkradio.model.ChannelListResult;
 import com.jianchi.fsp.buddhismnetworkradio.model.Program;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
+import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class SelectProgramActivity extends AppCompatActivity {
 
@@ -40,6 +46,12 @@ public class SelectProgramActivity extends AppCompatActivity {
     ProgressBar proBar;
 
     Program selectedProgramListItem = null;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,11 +89,12 @@ public class SelectProgramActivity extends AppCompatActivity {
                         //显示对话框
                         proBar.setVisibility(View.VISIBLE);
                         Channel channel = (Channel)selectProgramAdapter.getGroup(groupPosition);
-                        AmtbApi<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult> api = new AmtbApi<>(AmtbApi.takeProgramsUrl(channel.amtbid), new AmtbApiCallBack<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult>() {
+                        AmtbApi<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult> api = new AmtbApi<>(UrlHelper.takeProgramsUrl(channel.amtbid)
+                                , new AmtbApiCallBack<com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult>() {
                             @Override
                             public void callBack(com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult obj) {
                                 proBar.setVisibility(View.GONE);
-                                if(obj!=null) {
+                                if(obj.isSucess) {
                                     if(obj.programs.size()>0) {
                                         programListResultHashMap.put(groupPosition, obj.programs);
                                         lv.expandGroup(groupPosition, true);
@@ -89,7 +102,7 @@ public class SelectProgramActivity extends AppCompatActivity {
                                         Toast.makeText(SelectProgramActivity.this, R.string.load_nothing, Toast.LENGTH_LONG).show();
                                     }
                                 } else {
-                                    Toast.makeText(SelectProgramActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(SelectProgramActivity.this, obj.msg, Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
@@ -104,16 +117,16 @@ public class SelectProgramActivity extends AppCompatActivity {
         programListResultHashMap = new HashMap<>();
         //显示对话框
         proBar.setVisibility(View.VISIBLE);
-        AmtbApi<ChannelListResult> api = new AmtbApi<>(AmtbApi.takeChannelsUrl(), new AmtbApiCallBack<ChannelListResult>() {
+        AmtbApi<ChannelListResult> api = new AmtbApi<>(UrlHelper.takeChannelsUrl(), new AmtbApiCallBack<ChannelListResult>() {
             @Override
             public void callBack(ChannelListResult obj) {
                 proBar.setVisibility(View.GONE);
-                if(obj!=null) {
+                if(obj.isSucess) {
                     SelectProgramActivity.this.channelListResult = obj;
                     selectProgramAdapter = new SelectProgramAdapter();
                     lv.setAdapter(selectProgramAdapter);
                 } else {
-                    Toast.makeText(SelectProgramActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                    Toast.makeText(SelectProgramActivity.this, obj.msg, Toast.LENGTH_LONG).show();
                 }
             }
         });

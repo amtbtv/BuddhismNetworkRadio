@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.beardedhen.androidbootstrap.AwesomeTextView;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileItem;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 
 import java.util.List;
@@ -18,12 +19,12 @@ import java.util.List;
  */
 public class Mp3ListAdapter extends BaseAdapter {
     //volid  mp3列表
-    public List<String> mediaList;
+    public List<FileItem> mediaList;
     private LayoutInflater mInflater;
     Context context;
     public int curMediaIdx;
 
-    public Mp3ListAdapter(Context context, List<String> mediaList, int curMediaIdx){
+    public Mp3ListAdapter(Context context, List<FileItem> mediaList, int curMediaIdx){
         this.context=context;
         this.mediaList = mediaList;
         this.curMediaIdx = curMediaIdx;
@@ -52,7 +53,7 @@ public class Mp3ListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        String mp3 = mediaList.get(position);
+        FileItem mp3 = mediaList.get(position);
         //观察convertView随ListView滚动情况
         if(convertView==null)
             convertView = mInflater.inflate(R.layout.item_mp3, null);
@@ -69,7 +70,7 @@ public class Mp3ListAdapter extends BaseAdapter {
         }
 
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
-        txt.setText(mp3);
+        txt.setText(mp3.file);
 
         return convertView;
     }

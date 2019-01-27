@@ -57,10 +57,10 @@ public class AudioPlayer {
         mContext = context;
 
         //初始化播放器
-        TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-        RenderersFactory renderersFactory = new DefaultRenderersFactory(mContext);
-        mPlayer = ExoPlayerFactory.newSimpleInstance(renderersFactory, trackSelector, new DefaultLoadControl());
+        //TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
+        //DefaultTrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+        //RenderersFactory renderersFactory = new DefaultRenderersFactory(mContext);
+        mPlayer = ExoPlayerFactory.newSimpleInstance(context, new DefaultTrackSelector()); // renderersFactory, trackSelector, new DefaultLoadControl());
         mPlayer.addListener(new APEventListener());
 
         //

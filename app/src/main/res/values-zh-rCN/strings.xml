@@ -102,4 +102,13 @@
     <string name="load_fail_reload">载入数据出错，请重新打开</string>
     <string name="share_amtb_png_fail">分享时出错</string>
     <string name="stop_service">关闭退出</string>
+    <string name="title_show_html">显示隐藏文稿</string>
+    <string name="no_doc">没有相应文档</string>
+    <string name="zh_tw">正体/简体</string>
+    <string name="api_msg_download_success">下载成功</string>
+    <string name="api_msg_parse_fail">解析出错</string>
+    <string name="api_msg_download_fail">下载失败</string>
+    <string name="api_msg_network_fail">网络出错</string>
+    <string name="api_unknow_fail">未知错误</string>
+    <string name="share_need_storage_permission">分享图片需要读写权限</string>
 </resources>

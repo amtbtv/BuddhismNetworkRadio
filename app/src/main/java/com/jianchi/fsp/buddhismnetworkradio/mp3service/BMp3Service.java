@@ -1,5 +1,6 @@
 package com.jianchi.fsp.buddhismnetworkradio.mp3service;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -7,15 +8,40 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileItem;
 import com.jianchi.fsp.buddhismnetworkradio.model.FileListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.AudioPlayer;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.MediaNotificationManager;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
+import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
+import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.List;
 
+/**
+ * 播放服务说明
+ * 1. 在StartActivity中启动播放服务，并自动调用onStartCommand，开始下载数据，下载成功后，播放
+ * 2.在Mp3PlayerActivity中
+ *      1.在启动后，bindService，成功后，绑定事件监听，并绑定播放器到播放控件
+ *      2.仅在点右上角菜单action_stop_service后，明确关闭服务，并退出Activity
+ *      3.监听事件共有4个
+ *          void playChange(int index);
+ *          void downloadMp3s(Mp3Program mp3Program, List<FileItem> mp3s);
+ *          void buffering();
+ *          void ready();
+ *          在绑定后，若已经载入，会调用downloadMp3s传数据到Activity，若正在加载，则加载成功后，会调用些方法
+ *      4.在onDestory中，注册事件，解绑服务。其它情况如Activity转入后台，不再考虑，经尝试不会出什么问题
+ * 3.BMp3ServiceBinder中，只有4个方法：绑定事件setOnBMp3ServiceListener; 播放playMp3; 获取播放器用于绑定播放控件getPlayer
+ * 4.在AudioPlayer中，有播放停止等方法，并把播放事件传递给Service，并处理音频焦点管理
+ * 5.在BMp3Service中
+ *      1.接收AudioPlayer的事件，并传递给Activity
+ *      2.处理来电，暂停并重启播放服务
+ *      3.当服务被停止后，此时APP应该已经退出了，不必再将服务被停事件传给Activity了
+ *      4.处理服务被停后重启。被停前保存状态，重启后读取状态，并继续
+ *      5.启动时仅传递一个ID进来，重启时，载入保存的mp3Program，之后从网络上载入数据，开始播放
+ */
 public class BMp3Service extends Service {
 
     AudioPlayer audioPlayer;
@@ -26,7 +52,7 @@ public class BMp3Service extends Service {
 
     boolean waitPhoneIdleToPlaye = false;
 
-    List<String> mp3s;
+    List<FileItem> mp3s;
     int dbRecId = -1;
 
     AudioPlayer.EventListener audioPlayerEventListener = new AudioPlayer.EventListener() {
@@ -47,20 +73,23 @@ public class BMp3Service extends Service {
             //判断是否存在下一首歌
             if(mp3s.size()>mp3Program.curMediaIdx+1){
                 mp3Program.curMediaIdx++;
-                String mp3 = mp3s.get(mp3Program.curMediaIdx);
+                FileItem mp3 = mp3s.get(mp3Program.curMediaIdx);
                 mp3Program.postion = 0;
-                audioPlayer.play(makeMp3Url(mp3), mp3Program.postion);
-                if(bMp3ServiceListener!=null)
+                audioPlayer.play(makeMp3Url(mp3.file), mp3Program.postion);
+                saveCurMp3Program();
+                if(bMp3ServiceListener!=null) {
                     bMp3ServiceListener.playChange(mp3Program.curMediaIdx);
+                }
             }
         }
 
         @Override
         public void start() {
-            mediaNotificationManager.startNotification(
+            Notification notification = mediaNotificationManager.startNotification(
                     mp3Program.programListItem.name,
-                    mp3s.get(mp3Program.curMediaIdx)
+                    mp3s.get(mp3Program.curMediaIdx).file
             );
+            startForeground(MediaNotificationManager.NOTI_CTRL_ID, notification);
         }
     };
 
@@ -78,49 +107,82 @@ public class BMp3Service extends Service {
         tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
+    /**
+     * 这个方法在服务被中断后重启时会被执行
+     * @param intent
+     * @param flags
+     * @param startId
+     * @return
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int dbRecId = intent.getIntExtra("dbRecId", 0);
-        if(this.dbRecId!=dbRecId) {
-            if(this.dbRecId!=-1 && mp3Program!=null){
-                saveMp3Program();
+        if(intent!=null) {
+            int dbRecId = intent.getIntExtra("dbRecId", 0);
+            if (this.dbRecId != dbRecId) {
+                this.dbRecId = dbRecId;
+                Mp3RecDBManager db = new Mp3RecDBManager(this);
+                //mp3Program必不为null，因为这是点击这个才来到这里的
+                mp3Program = db.getMp3RecByDbRecId(dbRecId);
+                db.close();
+
+                saveCurMp3Program();
+
+                //载入数据并播放
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), amtbApiCallBack);
+                api.execute(FileListResult.class);
             }
-            this.dbRecId = dbRecId;
-            Mp3RecDBManager db = new Mp3RecDBManager(this);
-            //mp3Program必不为null，因为这是点击这个才来到这里的
-            mp3Program = db.getMp3RecByDbRecId(dbRecId);
-            db.close();
-
-            //载入数据并播放
-            AmtbApi<FileListResult> api = new AmtbApi<>(AmtbApi.takeFilesUrl(mp3Program.programListItem.identifier), new AmtbApiCallBack<FileListResult>() {
-                @Override
-                public void callBack(FileListResult obj) {
-                    if (obj != null) {
-                        //异步加载
-                        mp3s = obj.files;
-                        if (bMp3ServiceListener != null)
-                            bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
-
-                        String mp3 = obj.files.get(mp3Program.curMediaIdx);
-                        String url = makeMp3Url(mp3);
-                        audioPlayer.play(url, mp3Program.postion);
-
-                    }
-                }
-            });
-            api.execute(FileListResult.class);
+        } else {
+            mp3Program = takeCurMp3Program();
+            if(mp3Program!=null && mp3Program.dbRecId>0){                //载入数据并播放
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), amtbApiCallBack);
+                api.execute(FileListResult.class);
+            }
         }
-        //return super.onStartCommand(intent, flags, startId);
+        return super.onStartCommand(intent, flags, startId);
         //return super.onStartCommand(intent, START_FLAG_REDELIVERY, startId);
-        return START_NOT_STICKY;
+        //return START_NOT_STICKY;
+    }
+
+    /**
+     * 载入数据
+     */
+    AmtbApiCallBack amtbApiCallBack = new AmtbApiCallBack<FileListResult>() {
+        @Override
+        public void callBack(FileListResult obj) {
+            if (obj.isSucess) {
+                //异步加载
+                mp3s = obj.files;
+                if (bMp3ServiceListener != null)
+                    bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
+
+                FileItem mp3 = obj.files.get(mp3Program.curMediaIdx);
+                String url = makeMp3Url(mp3.file);
+                audioPlayer.play(url, mp3Program.postion);
+            } else {
+                if(bMp3ServiceListener!=null)
+                    bMp3ServiceListener.downloadMp3s(mp3Program, null);
+            }
+        }
+    };
+
+    /**
+     * 在内存出紧张时，保存进度
+     * @param level
+     */
+    @Override
+    public void onTrimMemory(int level) {
+        saveCurMp3Program();
+        super.onTrimMemory(level);
     }
 
     @Override
     public void onDestroy() {
         //保存进度
         if(audioPlayer!=null) {
-            saveMp3Program();
-
+            if(mp3Program!=null) {
+                saveMp3Program();
+                saveCurMp3Program();
+            }
             audioPlayer.stop();
             audioPlayer.release();
             //unregisterMp3Receiver();
@@ -142,10 +204,11 @@ public class BMp3Service extends Service {
 
     public void play(int mp3Idx){
         if(mp3Program.curMediaIdx != mp3Idx){
-            String mp3 = mp3s.get(mp3Idx);
+            FileItem mp3 = mp3s.get(mp3Idx);
             mp3Program.curMediaIdx = mp3Idx;
             mp3Program.postion = 0;
-            audioPlayer.play(makeMp3Url(mp3), mp3Program.postion);
+            String url = makeMp3Url(mp3.file);
+            audioPlayer.play(url, mp3Program.postion);
 
             //发送通知到 Notification 和 Activity
             if(bMp3ServiceListener!=null)
@@ -153,6 +216,7 @@ public class BMp3Service extends Service {
         }
     }
 
+    //监听来电，来电时暂停，返回时继续播放
     PhoneStateListener listener=new PhoneStateListener(){
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
@@ -182,13 +246,7 @@ public class BMp3Service extends Service {
 
     //12-017-0019.mp3
     private String makeMp3Url(String mp3) {
-        //                  http://amtbsg.cloudapp.net/redirect/vod/_definst_/mp3:mp3/02/02-041/02-041-0001.mp3/playlist.m3u8
-        //                  http://amtbsg.cloudapp.net/redirect/media/mp3/02/02-041/02-041-0001.mp3
-        //String urlFormat = "http://amtbsg.cloudapp.net/redirect/vod/_definst_/mp3:mp3/%s/%s/%s/playlist.m3u8";
-        String urlFormat = "http://amtbsg.cloudapp.net/redirect/media/mp3/%s/%s/%s";
-        String[] sp = mp3.split("-");
-        String url = String.format(urlFormat, sp[0], mp3Program.programListItem.identifier, mp3);
-        return url;
+        return UrlHelper.makeMp3PlayUrl(mp3, mp3Program.programListItem.identifier);
     }
 
     /**
@@ -202,4 +260,20 @@ public class BMp3Service extends Service {
         db.close();
     }
 
+    /**
+     * 内存紧张时，保存
+     */
+    private void saveCurMp3Program(){
+        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(this, "CurMp3Program");
+        sharedPreferencesHelper.put("CurMp3Program", mp3Program);
+    }
+
+    /**
+     * 服务恢复时，读取节目信息
+     * @return
+     */
+    private Mp3Program takeCurMp3Program(){
+        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(this, "CurMp3Program");
+        return sharedPreferencesHelper.getSharedPreference("CurMp3Program", Mp3Program.class);
+    }
 }

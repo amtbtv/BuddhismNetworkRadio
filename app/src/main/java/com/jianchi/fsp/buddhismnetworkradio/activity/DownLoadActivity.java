@@ -2,11 +2,11 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,11 +36,15 @@ import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.db.DownloadTaskInfoDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FileItem;
 import com.jianchi.fsp.buddhismnetworkradio.model.FileListResult;
 import com.jianchi.fsp.buddhismnetworkradio.model.Program;
+import com.jianchi.fsp.buddhismnetworkradio.model.StringResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.DownloadTaskInfo;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 import com.liulishuo.okdownload.DownloadListener;
 import com.liulishuo.okdownload.DownloadSerialQueue;
 import com.liulishuo.okdownload.DownloadTask;
@@ -51,17 +55,11 @@ import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class DownLoadActivity extends AppCompatActivity {
 
@@ -90,6 +88,12 @@ public class DownLoadActivity extends AppCompatActivity {
     List<DownloadTaskInfo> delTaskInfos;
     BootstrapButton bt_clean, bt_del_over, bt_del_selected;
     LinearLayout bottom_del_menu, bottom_menu;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,36 +242,23 @@ public class DownLoadActivity extends AppCompatActivity {
         }
 
         bt_start.setEnabled(false);
-        new LoadServerDomain().execute();
-    }
-
-    class LoadServerDomain extends AsyncTask<Integer, Integer, String> {
-        @Override
-        protected String doInBackground(Integer... integers) {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().url("http://amtbsg.cloudapp.net/loadbalancer/amtbservers.php?singleserver=1&servertype=httpserver&mediatype=media&media=mp3").build();
-            Call call = client.newCall(request);
-            try {
-                Response response = call.execute();
-                if(response.isSuccessful()) {
-                    Pattern p = Pattern.compile("\"domain\":\"(.*?)\"");
-                    Matcher m = p.matcher(response.body().string());
-                    if(m.find()){
-                        return "http://"+m.group(1)+"/media/mp3/";
+        AmtbApi<StringResult> api = new AmtbApi<StringResult>(UrlHelper.getBestMp3ServerUrl(),
+                new AmtbApiCallBack<StringResult>(){
+                    @Override
+                    public void callBack(StringResult obj) {
+                        if(obj.isSucess){
+                            Pattern p = Pattern.compile("\"domain\":\"(.*?)\"");
+                            Matcher m = p.matcher(obj.string);
+                            if(m.find()){
+                                serverDomain = m.group(1);
+                                bt_start.setEnabled(true);
+                            }
+                        } else {
+                            Toast.makeText(DownLoadActivity.this, obj.msg, Toast.LENGTH_LONG).show();
+                        }
                     }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return "http://amtbsg.cloudapp.net/redirect/media/mp3/";
-        }
-
-        @Override
-        protected void onPostExecute(String domain) {
-            super.onPostExecute(domain);
-            serverDomain = domain;
-            bt_start.setEnabled(true);
-        }
+                });
+        api.execute(StringResult.class);
     }
 
     private void showNeedSettingDialog() {
@@ -303,6 +294,7 @@ public class DownLoadActivity extends AppCompatActivity {
 
             for(DownloadTaskInfo d : taskInfos){
                 if(d.checked.equals("T")){
+                    //d.fileName <fileurl>56k/12/12-017-0019.mp3</fileurl>
                     String url = makeMp3Url(d.fileName);
                     DownloadTask task = new DownloadTask.Builder(url, parentFile).build();
                     task.setTag(d);
@@ -322,7 +314,7 @@ public class DownLoadActivity extends AppCompatActivity {
 
     //由XML中的URL转为真实的URL  <fileurl>56k/12/12-017-0019.mp3</fileurl>
     private String makeMp3Url(String xmlFileUrl) {
-        return serverDomain+xmlFileUrl;
+        return UrlHelper.makeDownloadMp3Url(serverDomain, xmlFileUrl);
     }
 
     private void writeFolderLocation(String folderLocation) {
@@ -360,15 +352,15 @@ public class DownLoadActivity extends AppCompatActivity {
                 final Program program = new Gson().fromJson(json, Program.class);
 
                 proBar.setVisibility(View.VISIBLE);
-                AmtbApi<FileListResult> api = new AmtbApi<>(AmtbApi.takeFilesUrl(program.identifier), new AmtbApiCallBack<FileListResult>() {
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(program.identifier), new AmtbApiCallBack<FileListResult>() {
                     @Override
                     public void callBack(FileListResult obj) {
                         proBar.setVisibility(View.GONE);
-                        if(obj!=null) {
-                            for (String file : obj.files) {
+                        if(obj.isSucess) {
+                            for (FileItem file : obj.files) {
                                 DownloadTaskInfo taskInfo = new DownloadTaskInfo();
                                 //56k/12/12-017-0016.mp3
-                                String[] sp = file.split("-");
+                                String[] sp = file.file.split("-");
                                 taskInfo.fileName = sp[0]+"/"+program.identifier+"/"+file;
                                 taskInfo.state = TaskState.未选择.toString();
                                 taskInfo.checked = "F";
@@ -392,7 +384,7 @@ public class DownLoadActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG
                             ).show();
                         } else {
-                            Toast.makeText(DownLoadActivity.this, R.string.load_fail, Toast.LENGTH_LONG).show();
+                            Toast.makeText(DownLoadActivity.this, obj.msg, Toast.LENGTH_LONG).show();
                         }
                     }
                 });

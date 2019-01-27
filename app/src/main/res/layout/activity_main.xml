@@ -42,6 +42,17 @@
                 android:padding="8dp"
                 android:src="@mipmap/ic_play" />
 
+<!--
+            <ImageButton
+                android:id="@+id/bt_full_screen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_margin="0dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/exo_controls_fullscreen_exit" />
+-->
+
         </RelativeLayout>
 
         <ProgressBar

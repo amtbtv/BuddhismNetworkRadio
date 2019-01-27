@@ -1,11 +1,12 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,22 +22,21 @@ import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.beardedhen.androidbootstrap.BootstrapLabel;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class ContactActivity extends AppCompatActivity {
+public class ContactActivity extends BaseActivity {
 
     private static final int SDCARD_PERMISSION = 3655;
+    private static final String MediaStoreSharedImageName = "BuddhismNetworkRadioSharedImage.png";
+
     BootstrapLabel version;
 
     BootstrapButton bt_site;
@@ -48,21 +48,16 @@ public class ContactActivity extends AppCompatActivity {
 
     BootstrapButton bt_invite_friends;
 
-    BApplication app;
-
     ProgressBar proBar;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_contact);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    int getContentView() {
+        return R.layout.activity_contact;
+    }
 
-        app = (BApplication) getApplication();
-
+    @Override
+    void onCreateDo() {
         proBar = (ProgressBar) findViewById(R.id.proBar);
-
         version = (BootstrapLabel) findViewById(R.id.version);
 
         bt_site = (BootstrapButton) findViewById(R.id.bt_site);
@@ -74,11 +69,13 @@ public class ContactActivity extends AppCompatActivity {
 
         bt_invite_friends = (BootstrapButton) findViewById(R.id.bt_invite_friends);
 
-        PackageInfo pi = getVersion();
-        if(pi!=null)
+        try {
+            PackageInfo pi = getVersion();
             version.setText(pi.versionName);
-        else
-            version.setText("2.0.2");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            version.setText("未知");
+        }
 
         bt_site.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +119,6 @@ public class ContactActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     void shareImage() {
@@ -133,102 +129,103 @@ public class ContactActivity extends AppCompatActivity {
         }
         File paper = new File(initDir, "paper.png");
         if (!paper.exists()) {
-            String url = getString(R.string.amtb_png_url);
-            DownPicTask task = new DownPicTask();
-            task.execute(url, paper.getAbsolutePath());
-        } else {
+            try {
+                InputStream in = getResources().openRawResource(R.raw.amtbpng);
+                FileOutputStream out = new FileOutputStream(paper);
+                byte[] buffer = new byte[1024];
+                int read;
+                while((read = in.read(buffer)) != -1){
+                    out.write(buffer, 0, read);
+                }
+                in.close();
+                out.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (paper.exists()) {
             shareImage2(paper);
+        } else {
+            Toast.makeText(ContactActivity.this, R.string.share_amtb_png_fail, Toast.LENGTH_LONG).show();
         }
     }
+
+    boolean findImage(Uri uri){
+        boolean result = false;
+        Cursor cursor = getContentResolver().query( uri, new String[] { MediaStore.Images.ImageColumns.DATA }, null, null, null );
+        if ( null != cursor ) {
+            if ( cursor.moveToFirst() ) {
+                int index = cursor.getColumnIndex( MediaStore.Images.ImageColumns.DATA );
+                if ( index > -1 ) {
+                    String d = cursor.getString( index );
+                    File file = new File(d);
+                    if(file.exists()){
+                        result = true;
+                    } else {
+                        getContentResolver().delete(uri, null, null);
+                    }
+                }
+            }
+            cursor.close();
+        }
+        return result;
+    }
+
+    Uri insertImage(File paper, SharedPreferencesHelper helper){
+        Uri imageUri = null;
+        try {
+            String murl = MediaStore.Images.Media.insertImage(getContentResolver(), paper.getAbsolutePath(), MediaStoreSharedImageName, "图片: " + paper.getName());
+            if(!murl.isEmpty()) {
+                helper.putString("URI", murl);
+                imageUri = Uri.parse(murl);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return imageUri;
+    }
+
     void shareImage2(File paper){
         Uri imageUri = null;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             imageUri = Uri.fromFile(paper);
         } else {
-            try {
-                String murl = MediaStore.Images.Media.insertImage(getContentResolver(), paper.getAbsolutePath(), UUID.randomUUID().toString() + ".png", "图片: " + paper.getName());
-                imageUri = Uri.parse(murl);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+            SharedPreferencesHelper helper = new SharedPreferencesHelper(getThisActivity(), "shareimage");
+            String murl = helper.getString("URI");
 
-        Intent shareIntent = new Intent();
-        shareIntent.setAction(Intent.ACTION_SEND);
-        shareIntent.setType("image/*");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
-        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-        shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.app_name)));
-    }
-
-
-    class DownPicTask extends AsyncTask<String, Integer, String>{
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            proBar.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            String url = strings[0];
-            String filePath = strings[1];
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().url(url).build();
-            try {
-                Response response = client.newCall(request).execute();
-                if(response.isSuccessful()){
-                    InputStream in = response.body().byteStream();
-                    File paper = new File(filePath);
-                    FileOutputStream out = new FileOutputStream(paper);
-                    copyFile(in, out);
-                    in.close();
-                    out.close();
-                }
-                response.close();
-                return filePath;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            proBar.setVisibility(View.GONE);
-            if(s!=null){
-                File paper = new File(s);
-                shareImage2(paper);
+            if(murl.isEmpty()){
+                imageUri = insertImage(paper, helper);
             } else {
-                Toast.makeText(ContactActivity.this, R.string.share_amtb_png_fail, Toast.LENGTH_LONG).show();
+                imageUri = Uri.parse(murl);
+                if(!findImage(imageUri)){
+                    imageUri = insertImage(paper, helper);
+                }
             }
         }
-    }
 
-    public void copyFile(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        int read;
-        while((read = in.read(buffer)) != -1){
-            out.write(buffer, 0, read);
+        if(imageUri!=null) {
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.setType("image/*");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
+            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+            shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.app_name)));
+        } else {
+            Toast.makeText(ContactActivity.this, R.string.share_amtb_png_fail, Toast.LENGTH_LONG).show();
         }
     }
-
         /**
          * 获取当前APP版本号
          * @return
          */
-    PackageInfo getVersion() {
-        try {
-            PackageManager manager = getPackageManager();
-            PackageInfo info = manager.getPackageInfo(getPackageName(), 0);
-            return info;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    PackageInfo getVersion() throws PackageManager.NameNotFoundException {
+        PackageManager manager = getPackageManager();
+        PackageInfo info = manager.getPackageInfo(getPackageName(), 0);
+        return info;
     }
 
     /**
@@ -263,10 +260,11 @@ public class ContactActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case SDCARD_PERMISSION: {
+        if (requestCode == SDCARD_PERMISSION) {
+            if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
                 shareImage();
-                return;
+            } else {
+                Toast.makeText(getThisActivity(), R.string.share_need_storage_permission, Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,8 +20,12 @@ import android.widget.VideoView;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.model.Live;
+import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.video.VideoMenuManager;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
      * 播放按扭
      */
     private ImageButton bt_play;
+
+    private ImageButton bt_full_screen;
 
     /**
      * 加载视频动画
@@ -59,7 +67,16 @@ public class MainActivity extends AppCompatActivity {
      */
     boolean isPlayingResume = false;
 
+    //默认横屏
+    //boolean isPortraitFullScreen = true;
+
     //endregion
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +124,18 @@ public class MainActivity extends AppCompatActivity {
             bt_play = (ImageButton) findViewById(R.id.bt_play);
             bt_play.setOnClickListener(bt_playOnClickListener);
 
+            /*
+            bt_full_screen = (ImageButton) findViewById(R.id.bt_full_screen);
+            bt_full_screen.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // 全屏或半屏显示，默认是全屏显示
+
+                    bt_full_screen.setImageResource(R.drawable.exo_controls_fullscreen_exit);
+                    bt_full_screen.setImageResource(R.drawable.exo_controls_fullscreen_enter);
+                }
+            });
+*/
             if(!app.isNetworkConnected()){
                 networkFailClose();
             }else {

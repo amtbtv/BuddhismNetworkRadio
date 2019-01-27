@@ -2,9 +2,11 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -18,7 +20,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
+import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+
+import java.util.Locale;
 
 public class DownloadSettingActivity extends PreferenceActivity {
 
@@ -30,6 +37,12 @@ public class DownloadSettingActivity extends PreferenceActivity {
 
     Preference preference_storagePermission;
     Preference preference_folderLocation;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        Tools.changeAppLanguage(newBase);
+        super.attachBaseContext(newBase);
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

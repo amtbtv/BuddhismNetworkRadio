@@ -26,6 +26,10 @@ public class Mp3ChannelListAdapter extends BaseAdapter {
         this.mInflater = LayoutInflater.from(context);
     }
 
+    public void setMp3Programs(List<Mp3Program> mp3Programs){
+        this.mp3Programs = mp3Programs;
+    }
+
     @Override
     public int getCount() {
         return mp3Programs.size();
