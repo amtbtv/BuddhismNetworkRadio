@@ -56,7 +56,7 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
     boolean isShowHtml = true;
 
-    Mp3Program mp3Program;
+    //Mp3Program mp3Program;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -66,17 +66,17 @@ public class Mp3PlayerActivity extends AppCompatActivity {
 
     BMp3ServiceListener bMp3ServiceListener = new BMp3ServiceListener() {
         @Override
-        public void playChange(final int index) {
+        public void playChange(int index) {
+            mp3ListAdapter.curMediaIdx = index;
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mp3ListAdapter.curMediaIdx = index;
                     mp3ListAdapter.notifyDataSetChanged();
 
-                    FileItem fileItem = (FileItem) mp3ListAdapter.getItem(index);
+                    FileItem fileItem = mp3ListAdapter.getCurFileItem();
                     if(fileItem.txt==1) {
+                        isShowHtml = true;
                         webView.setVisibility(isShowHtml? View.VISIBLE : View.INVISIBLE);
-
                         String mp3FileName = fileItem.file;
                         String itemId = mp3FileName.substring(0, mp3FileName.length() - 4);
                         SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Mp3PlayerActivity.this, "setting");
@@ -84,14 +84,24 @@ public class Mp3PlayerActivity extends AppCompatActivity {
                         country = country.replace("\"","" );
                         if (country.equals("ZH")) country = "CN"; else country = "TW";
                         webView.loadUrl(UrlHelper.makeMp3DocUrl(itemId, country));
+                    } else {
+                        isShowHtml = false;
+                        webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
+                        Toast.makeText(Mp3PlayerActivity.this, R.string.no_doc, Toast.LENGTH_LONG).show();
                     }
                 }
             });
         }
 
+        /**
+         * 下载完数据，初始化列表和网页
+         * 这里曾发生一个错误，原因应该是在注册BMp3ServiceListener后，直接返回了结果，但这时结果仍然在下载中，结果返回的是上一次的结果集。
+         * @param mp3Program
+         * @param mp3s
+         */
         @Override
-        public void downloadMp3s(final Mp3Program mp3Program, final List<FileItem> mp3s) {
-            if(mp3s==null){
+        public void downloadMp3s(Mp3Program mp3Program, List<FileItem> mp3s) {
+            if(mp3s==null || mp3s.size()==0){
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -99,16 +109,18 @@ public class Mp3PlayerActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Mp3PlayerActivity.this.mp3Program = mp3Program;
+                //Mp3PlayerActivity.this.mp3Program = mp3Program;
+                mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3s, mp3Program.curMediaIdx);
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         setTitle(TW2CN.getInstance(Mp3PlayerActivity.this).toLocal(mp3Program.programListItem.name));
-                        mp3ListAdapter = new Mp3ListAdapter(Mp3PlayerActivity.this, mp3s, mp3Program.curMediaIdx);
                         lv.setAdapter(mp3ListAdapter);
-                        lv.setSelection(mp3Program.curMediaIdx);
+                        lv.setSelection(mp3ListAdapter.curMediaIdx);
 
-                        FileItem fileItem = mp3s.get(mp3Program.curMediaIdx);
+                        //这里会报错
+                        FileItem fileItem = mp3ListAdapter.getCurFileItem();
                         if (fileItem.txt == 1) {
                             webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
 
@@ -168,6 +180,8 @@ public class Mp3PlayerActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 binder.playMp3(position);
+                isShowHtml = !isShowHtml;
+                webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
             }
         });
 
@@ -240,11 +254,13 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         } else if (id == R.id.action_show_html){
             FileItem fileItem = null;
             if(mp3ListAdapter!=null)
-                fileItem = (FileItem) mp3ListAdapter.getItem(mp3Program.curMediaIdx);
+                fileItem = mp3ListAdapter.getCurFileItem();
             if(fileItem!=null && fileItem.txt==1) {
                 isShowHtml = !isShowHtml;
                 webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
             } else {
+                isShowHtml = false;
+                webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
                 Toast.makeText(this, R.string.no_doc, Toast.LENGTH_LONG).show();
             }
         }

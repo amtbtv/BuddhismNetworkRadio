@@ -12,10 +12,7 @@ public class BMp3ServiceBinder extends Binder {
     }
 
     public void setOnBMp3ServiceListener(BMp3ServiceListener bMp3ServiceListener){
-        bMp3Service.bMp3ServiceListener = bMp3ServiceListener;
-        if(bMp3Service.mp3s!=null && bMp3Service.mp3Program!=null && bMp3ServiceListener!=null){
-            bMp3ServiceListener.downloadMp3s(bMp3Service.mp3Program, bMp3Service.mp3s);
-        }
+        bMp3Service.setbMp3ServiceListener(bMp3ServiceListener);
     }
 
     public void playMp3(int mp3Idx) {

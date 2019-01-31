@@ -31,6 +31,15 @@ public class Mp3ListAdapter extends BaseAdapter {
         this.mInflater = LayoutInflater.from(context);
     }
 
+    public FileItem getCurFileItem() {
+        return mediaList.get(curMediaIdx);
+    }
+
+    public void setData(List<FileItem> mp3s, int curMediaIdx) {
+        this.mediaList = mp3s;
+        this.curMediaIdx = curMediaIdx;
+    }
+
     @Override
     public int getCount() {
         return mediaList.size();
@@ -74,4 +83,5 @@ public class Mp3ListAdapter extends BaseAdapter {
 
         return convertView;
     }
+
 }

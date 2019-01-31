@@ -53,7 +53,22 @@ public class BMp3Service extends Service {
     boolean waitPhoneIdleToPlaye = false;
 
     List<FileItem> mp3s;
+    int mp3sDbRecId = -1;
+
     int dbRecId = -1;
+    boolean isDowning = false;
+
+    public void setbMp3ServiceListener(BMp3ServiceListener bMp3ServiceListener) {
+        this.bMp3ServiceListener = bMp3ServiceListener;
+        if(isDowning){
+            System.out.println("正在下载，下载完后会引发更新内容的事件");
+        } else {
+            System.out.println("没在下载，若内容可用，直接返回");
+            if (mp3s != null && mp3Program != null && bMp3ServiceListener != null && mp3Program.dbRecId == mp3sDbRecId) {
+                bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
+            }
+        }
+    }
 
     AudioPlayer.EventListener audioPlayerEventListener = new AudioPlayer.EventListener() {
         @Override
@@ -73,13 +88,17 @@ public class BMp3Service extends Service {
             //判断是否存在下一首歌
             if(mp3s.size()>mp3Program.curMediaIdx+1){
                 mp3Program.curMediaIdx++;
-                FileItem mp3 = mp3s.get(mp3Program.curMediaIdx);
                 mp3Program.postion = 0;
-                audioPlayer.play(makeMp3Url(mp3.file), mp3Program.postion);
-                saveCurMp3Program();
-                if(bMp3ServiceListener!=null) {
-                    bMp3ServiceListener.playChange(mp3Program.curMediaIdx);
-                }
+            } else {
+                mp3Program.curMediaIdx = 0;
+                mp3Program.postion = 0;
+            }
+            saveCurMp3Program();
+            saveMp3Program();
+            FileItem mp3 = mp3s.get(mp3Program.curMediaIdx);
+            audioPlayer.play(makeMp3Url(mp3.file), mp3Program.postion);
+            if(bMp3ServiceListener!=null) {
+                bMp3ServiceListener.playChange(mp3Program.curMediaIdx);
             }
         }
 
@@ -119,6 +138,10 @@ public class BMp3Service extends Service {
         if(intent!=null) {
             int dbRecId = intent.getIntExtra("dbRecId", 0);
             if (this.dbRecId != dbRecId) {
+                //保存旧节目，下面会载入新节目
+                if(mp3Program!=null)
+                    saveMp3Program();
+
                 this.dbRecId = dbRecId;
                 Mp3RecDBManager db = new Mp3RecDBManager(this);
                 //mp3Program必不为null，因为这是点击这个才来到这里的
@@ -128,13 +151,21 @@ public class BMp3Service extends Service {
                 saveCurMp3Program();
 
                 //载入数据并播放
-                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), amtbApiCallBack);
+                isDowning = true;
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
                 api.execute(FileListResult.class);
+            } else {
+                //此处只有一种可能，即用户退出后又进入了播放界面
+                if(mp3Program!=null && mp3s!=null)
+                    if (bMp3ServiceListener != null)
+                        bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
             }
         } else {
             mp3Program = takeCurMp3Program();
-            if(mp3Program!=null && mp3Program.dbRecId>0){                //载入数据并播放
-                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), amtbApiCallBack);
+            if(mp3Program!=null && mp3Program.dbRecId>0){
+                //载入数据并播放
+                isDowning = true;
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
                 api.execute(FileListResult.class);
             }
         }
@@ -146,24 +177,39 @@ public class BMp3Service extends Service {
     /**
      * 载入数据
      */
-    AmtbApiCallBack amtbApiCallBack = new AmtbApiCallBack<FileListResult>() {
+    class DownloadMp3FileListResult implements AmtbApiCallBack<FileListResult> {
+        private Mp3Program dMp3Program;
+        public DownloadMp3FileListResult(Mp3Program mp3Program){
+            this.dMp3Program = mp3Program;
+        }
         @Override
         public void callBack(FileListResult obj) {
             if (obj.isSucess) {
                 //异步加载
                 mp3s = obj.files;
-                if (bMp3ServiceListener != null)
-                    bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
+                mp3sDbRecId = dMp3Program.dbRecId;
 
-                FileItem mp3 = obj.files.get(mp3Program.curMediaIdx);
+                if(dMp3Program.curMediaIdx>=mp3s.size()){
+                    dMp3Program.curMediaIdx = 0;
+                    saveCurMp3Program();
+                    saveMp3Program();
+                }
+
+                FileItem mp3 = obj.files.get(dMp3Program.curMediaIdx);
                 String url = makeMp3Url(mp3.file);
-                audioPlayer.play(url, mp3Program.postion);
+                audioPlayer.play(url, dMp3Program.postion);
+
+                if (bMp3ServiceListener != null)
+                    bMp3ServiceListener.downloadMp3s(dMp3Program, mp3s);
+
+                System.out.println(String.format("播放节目 %s : %d : %d", dMp3Program.programListItem.name, dMp3Program.curMediaIdx, mp3s.size()));
             } else {
                 if(bMp3ServiceListener!=null)
-                    bMp3ServiceListener.downloadMp3s(mp3Program, null);
+                    bMp3ServiceListener.downloadMp3s(dMp3Program, null);
             }
+            isDowning = false;
         }
-    };
+    }
 
     /**
      * 在内存出紧张时，保存进度

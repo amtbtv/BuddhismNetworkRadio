@@ -248,6 +248,7 @@ public class DownLoadActivity extends AppCompatActivity {
                     public void callBack(StringResult obj) {
                         if(obj.isSucess){
                             Pattern p = Pattern.compile("\"domain\":\"(.*?)\"");
+
                             Matcher m = p.matcher(obj.string);
                             if(m.find()){
                                 serverDomain = m.group(1);
@@ -361,7 +362,7 @@ public class DownLoadActivity extends AppCompatActivity {
                                 DownloadTaskInfo taskInfo = new DownloadTaskInfo();
                                 //56k/12/12-017-0016.mp3
                                 String[] sp = file.file.split("-");
-                                taskInfo.fileName = sp[0]+"/"+program.identifier+"/"+file;
+                                taskInfo.fileName = sp[0]+"/"+program.identifier+"/"+file.file;
                                 taskInfo.state = TaskState.未选择.toString();
                                 taskInfo.checked = "F";
                                 //检测是否存在
@@ -513,7 +514,7 @@ public class DownLoadActivity extends AppCompatActivity {
             } else if(EndCause.ERROR == cause){
                 DownloadTaskInfo taskInfo = (DownloadTaskInfo) task.getTag();
                 taskInfo.state = TaskState.出错.toString();
-                Toast.makeText(DownLoadActivity.this, R.string.download_error_retry, Toast.LENGTH_LONG).show();
+                Toast.makeText(DownLoadActivity.this, getString(R.string.download_error_retry)+"\r\n"+realCause.getMessage(), Toast.LENGTH_LONG).show();
                 taskInfoAdapter.notifyDataSetChanged();
             }
         }

@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.model.Result;
+import com.jianchi.fsp.buddhismnetworkradio.model.StringResult;
 
 import java.io.IOException;
 
@@ -38,7 +39,13 @@ public class AmtbApi<T extends Result> extends AsyncTask<Class<T>, Integer, T> {
             String json = BApplication.getInstance().http.take(url, charset);
             if (!json.isEmpty()) {
                 try {
-                    T val = new Gson().fromJson(json, parms[0]);
+                    T val;
+                    if(_class == StringResult.class){
+                        val  = _class.newInstance();
+                        ((StringResult) val).string = json;
+                    } else {
+                        val = new Gson().fromJson(json, parms[0]);
+                    }
                     val.isSucess = true;
                     val.msg = BApplication.getInstance().getResourceString(R.string.api_msg_download_success);
                     return val;
