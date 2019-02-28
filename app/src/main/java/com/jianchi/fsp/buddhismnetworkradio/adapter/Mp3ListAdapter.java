@@ -83,5 +83,4 @@ public class Mp3ListAdapter extends BaseAdapter {
 
         return convertView;
     }
-
 }

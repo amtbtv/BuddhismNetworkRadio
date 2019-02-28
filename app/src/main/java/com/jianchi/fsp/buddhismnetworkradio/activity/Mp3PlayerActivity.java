@@ -67,30 +67,33 @@ public class Mp3PlayerActivity extends AppCompatActivity {
     BMp3ServiceListener bMp3ServiceListener = new BMp3ServiceListener() {
         @Override
         public void playChange(int index) {
-            mp3ListAdapter.curMediaIdx = index;
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    mp3ListAdapter.notifyDataSetChanged();
+            if(mp3ListAdapter!=null) {
+                mp3ListAdapter.curMediaIdx = index;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mp3ListAdapter.notifyDataSetChanged();
 
-                    FileItem fileItem = mp3ListAdapter.getCurFileItem();
-                    if(fileItem.txt==1) {
-                        isShowHtml = true;
-                        webView.setVisibility(isShowHtml? View.VISIBLE : View.INVISIBLE);
-                        String mp3FileName = fileItem.file;
-                        String itemId = mp3FileName.substring(0, mp3FileName.length() - 4);
-                        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Mp3PlayerActivity.this, "setting");
-                        String country = sharedPreferencesHelper.getString("local");
-                        country = country.replace("\"","" );
-                        if (country.equals("ZH")) country = "CN"; else country = "TW";
-                        webView.loadUrl(UrlHelper.makeMp3DocUrl(itemId, country));
-                    } else {
-                        isShowHtml = false;
-                        webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
-                        Toast.makeText(Mp3PlayerActivity.this, R.string.no_doc, Toast.LENGTH_LONG).show();
+                        FileItem fileItem = mp3ListAdapter.getCurFileItem();
+                        if (fileItem.txt == 1) {
+                            isShowHtml = true;
+                            webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
+                            String mp3FileName = fileItem.file;
+                            String itemId = mp3FileName.substring(0, mp3FileName.length() - 4);
+                            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Mp3PlayerActivity.this, "setting");
+                            String country = sharedPreferencesHelper.getString("local");
+                            country = country.replace("\"", "");
+                            if (country.equals("ZH")) country = "CN";
+                            else country = "TW";
+                            webView.loadUrl(UrlHelper.makeMp3DocUrl(itemId, country));
+                        } else {
+                            isShowHtml = false;
+                            webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
+                            Toast.makeText(Mp3PlayerActivity.this, R.string.no_doc, Toast.LENGTH_LONG).show();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         /**

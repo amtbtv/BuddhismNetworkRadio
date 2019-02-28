@@ -248,7 +248,6 @@ public class DownLoadActivity extends AppCompatActivity {
                     public void callBack(StringResult obj) {
                         if(obj.isSucess){
                             Pattern p = Pattern.compile("\"domain\":\"(.*?)\"");
-
                             Matcher m = p.matcher(obj.string);
                             if(m.find()){
                                 serverDomain = m.group(1);
