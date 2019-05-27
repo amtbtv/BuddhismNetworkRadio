@@ -10,9 +10,14 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 
 import com.beardedhen.androidbootstrap.TypefaceProvider;
+import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.tools.CacheOKHttp;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+
+import org.lzh.framework.updatepluginlib.UpdateConfig;
+import org.lzh.framework.updatepluginlib.base.UpdateParser;
+import org.lzh.framework.updatepluginlib.model.Update;
 
 import java.util.Locale;
 
@@ -21,6 +26,8 @@ import java.util.Locale;
  * 保存状态，以便在屏幕旋转后使用
  */
 public class BApplication extends Application {
+    public static final String Upgrade_Url = "https://amtbapi.amtb.cn/upgradeBuddhismNetworkRadio.json";
+
     private static BApplication sApp;
     public CacheOKHttp http;
     public static BApplication getInstance() {
@@ -62,7 +69,15 @@ public class BApplication extends Application {
         http = new CacheOKHttp(this);
 
         TypefaceProvider.registerDefaultIconSets();
-
+        UpdateConfig.getConfig()
+                .setUrl(Upgrade_Url)// 配置检查更新的API接口
+                .setUpdateParser(new UpdateParser() {
+                    @Override
+                    public Update parse(String response) throws Exception {
+                        Update update = new Gson().fromJson(response, Update.class);
+                        return update;
+                    }
+                });
     }
 
     /**

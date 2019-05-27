@@ -109,7 +109,7 @@ public class StartActivity extends BaseActivity {
         if(!updateChecked) {
             updateChecked = true;
             //每次打开首页检测更新
-            UpdateBuilder.create().check();// 启动更新任务
+            //UpdateBuilder.create().check();// 启动更新任务
         }
     }
 
