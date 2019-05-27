@@ -53,7 +53,7 @@ public class BMp3Service extends Service {
     boolean waitPhoneIdleToPlaye = false;
 
     List<FileItem> mp3s;
-    int mp3sDbRecId = -1;
+    int mp3sDbRecId = -1; //记录，当前mp3s中保存的数据是的DbRecId
 
     int dbRecId = -1;
     boolean isDowning = false;
@@ -64,6 +64,7 @@ public class BMp3Service extends Service {
             System.out.println("正在下载，下载完后会引发更新内容的事件");
         } else {
             System.out.println("没在下载，若内容可用，直接返回");
+            //mp3Program.dbRecId == mp3sDbRecId ，防止当前的mp3s中存在的不是当前请求的
             if (mp3s != null && mp3Program != null && bMp3ServiceListener != null && mp3Program.dbRecId == mp3sDbRecId) {
                 bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
             }
@@ -95,6 +96,7 @@ public class BMp3Service extends Service {
             }
             saveCurMp3Program();
             saveMp3Program();
+            mp3Program.postion = 0;
             FileItem mp3 = mp3s.get(mp3Program.curMediaIdx);
             audioPlayer.play(makeMp3Url(mp3.file), mp3Program.postion);
             if(bMp3ServiceListener!=null) {
@@ -127,7 +129,10 @@ public class BMp3Service extends Service {
     }
 
     /**
-     * 这个方法在服务被中断后重启时会被执行
+     * 这个方法在服务被中断后重启时会被执行，会在StartActivity中使用，每次更换节目，都会调用这个方法
+     *                 Intent startIntent = new Intent(StartActivity.this, BMp3Service.class);
+     *                 startIntent.putExtra("dbRecId", mp3Program.dbRecId);
+     *                 ComponentName name = startService(startIntent);
      * @param intent
      * @param flags
      * @param startId
@@ -139,8 +144,10 @@ public class BMp3Service extends Service {
             int dbRecId = intent.getIntExtra("dbRecId", 0);
             if (this.dbRecId != dbRecId) {
                 //保存旧节目，下面会载入新节目
-                if(mp3Program!=null)
+                if(mp3Program!=null) {
+                    mp3Program.postion = (int) audioPlayer.getCurrentPosition();
                     saveMp3Program();
+                }
 
                 this.dbRecId = dbRecId;
                 Mp3RecDBManager db = new Mp3RecDBManager(this);
@@ -161,6 +168,7 @@ public class BMp3Service extends Service {
                         bMp3ServiceListener.downloadMp3s(mp3Program, mp3s);
             }
         } else {
+            // 播放服务由于内存紧张等原因暂停，当环境适合时，服务恢复时，读取节目信息
             mp3Program = takeCurMp3Program();
             if(mp3Program!=null && mp3Program.dbRecId>0){
                 //载入数据并播放
@@ -178,19 +186,36 @@ public class BMp3Service extends Service {
      * 载入数据
      */
     class DownloadMp3FileListResult implements AmtbApiCallBack<FileListResult> {
+        //dMp3Program就是父类中的mp3Program，但也可能不同，比如正在下载时，又读取了新的mp3Program，则两个就不同了
         private Mp3Program dMp3Program;
+
         public DownloadMp3FileListResult(Mp3Program mp3Program){
             this.dMp3Program = mp3Program;
         }
+
+        /**
+         * 下载完后，异步执行
+         * @param obj
+         */
         @Override
         public void callBack(FileListResult obj) {
+
+            //在下载时又列换了下载任务，直接返回就好了
+            if(dMp3Program.dbRecId != mp3Program.dbRecId){
+                return;
+            }
+
             if (obj.isSucess) {
                 //异步加载
                 mp3s = obj.files;
+
+                //记录，当前mp3s中保存的数据是的DbRecId
                 mp3sDbRecId = dMp3Program.dbRecId;
 
+                //一般不会出现这种情况，唯一可能出现的，是节目列表变了
                 if(dMp3Program.curMediaIdx>=mp3s.size()){
                     dMp3Program.curMediaIdx = 0;
+                    dMp3Program.postion = 0;
                     saveCurMp3Program();
                     saveMp3Program();
                 }
@@ -199,6 +224,7 @@ public class BMp3Service extends Service {
                 String url = makeMp3Url(mp3.file);
                 audioPlayer.play(url, dMp3Program.postion);
 
+                //引发事件，更新UI
                 if (bMp3ServiceListener != null)
                     bMp3ServiceListener.downloadMp3s(dMp3Program, mp3s);
 
@@ -226,6 +252,7 @@ public class BMp3Service extends Service {
         //保存进度
         if(audioPlayer!=null) {
             if(mp3Program!=null) {
+                mp3Program.postion = (int) audioPlayer.getCurrentPosition();
                 saveMp3Program();
                 saveCurMp3Program();
             }
@@ -300,7 +327,6 @@ public class BMp3Service extends Service {
      */
     private void saveMp3Program() {
         //获取进度，其它数据都在更改时自动获取
-        mp3Program.postion = (int) audioPlayer.getCurrentPosition();
         Mp3RecDBManager db = new Mp3RecDBManager(this);
         db.update(mp3Program);
         db.close();

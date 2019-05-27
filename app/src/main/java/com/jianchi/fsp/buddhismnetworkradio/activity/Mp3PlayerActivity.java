@@ -64,15 +64,22 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         super.attachBaseContext(newBase);
     }
 
+    /**
+     * Mp3服务的事件监听
+     */
     BMp3ServiceListener bMp3ServiceListener = new BMp3ServiceListener() {
+        /**
+         * 播放文件改变事件
+         * @param index
+         */
         @Override
         public void playChange(int index) {
-            if(mp3ListAdapter!=null) {
-                mp3ListAdapter.curMediaIdx = index;
+            if(mp3ListAdapter!=null) { //应该是在下面downloadMp3s中初始化数据之后才会发生，此时mp3ListAdapter应不为null
+                mp3ListAdapter.curMediaIdx = index; //更新当前mp3，
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        mp3ListAdapter.notifyDataSetChanged();
+                        mp3ListAdapter.notifyDataSetChanged(); //更新列表状态
 
                         FileItem fileItem = mp3ListAdapter.getCurFileItem();
                         if (fileItem.txt == 1) {
@@ -122,7 +129,7 @@ public class Mp3PlayerActivity extends AppCompatActivity {
                         lv.setAdapter(mp3ListAdapter);
                         lv.setSelection(mp3ListAdapter.curMediaIdx);
 
-                        //这里会报错
+                        //获取当前文件
                         FileItem fileItem = mp3ListAdapter.getCurFileItem();
                         if (fileItem.txt == 1) {
                             webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
@@ -177,12 +184,13 @@ public class Mp3PlayerActivity extends AppCompatActivity {
         proBar = (ProgressBar) findViewById(R.id.mp3ProBar);
         webView = (WebView) findViewById(R.id.webView);
         webView.setVisibility(isShowHtml? View.VISIBLE : View.INVISIBLE);
+        webView.getSettings().setJavaScriptEnabled(true);
 
         lv = (ListView) findViewById(R.id.lv_mp3);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                binder.playMp3(position);
+                binder.playMp3(position);//position是列表中的序号，即要播放的文件序号
                 isShowHtml = !isShowHtml;
                 webView.setVisibility(isShowHtml ? View.VISIBLE : View.INVISIBLE);
             }

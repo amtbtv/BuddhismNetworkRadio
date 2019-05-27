@@ -1,8 +1,6 @@
 package com.jianchi.fsp.buddhismnetworkradio;
 
 import android.app.Application;
-import android.app.backup.BackupManager;
-import android.app.backup.SharedPreferencesBackupHelper;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -12,12 +10,9 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 
 import com.beardedhen.androidbootstrap.TypefaceProvider;
-import com.jianchi.fsp.buddhismnetworkradio.db.DBHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.CacheOKHttp;
-import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
-import com.tencent.bugly.Bugly;
 
 import java.util.Locale;
 
@@ -65,9 +60,6 @@ public class BApplication extends Application {
 
         sApp = this;
         http = new CacheOKHttp(this);
-
-        //腾讯错误收集和自动升级服务注册c833a75af3，原来的账号出问题了，又建了一个
-        Bugly.init(getApplicationContext(), "184f3da991", false);
 
         TypefaceProvider.registerDefaultIconSets();
 

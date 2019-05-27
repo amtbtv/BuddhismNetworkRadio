@@ -37,6 +37,8 @@ import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
+import org.lzh.framework.updatepluginlib.UpdateBuilder;
+
 import java.util.List;
 
 /**
@@ -46,6 +48,7 @@ import java.util.List;
  *
  */
 public class StartActivity extends BaseActivity {
+    private static boolean updateChecked = false;
     /**
      * 接收返回管理点播MP3列表的标记
      */
@@ -97,9 +100,16 @@ public class StartActivity extends BaseActivity {
             Toast.makeText(getThisActivity(), R.string.no_network, Toast.LENGTH_LONG).show();
         }
 
+        //恢复之前的播放界面
         String startWith = getIntent().getStringExtra("StartWith");
         if(startWith!=null && startWith.equals("StartWith_MP3_SERVICE")){
             startActivity(new Intent(getThisActivity(), Mp3PlayerActivity.class));
+        }
+
+        if(!updateChecked) {
+            updateChecked = true;
+            //每次打开首页检测更新
+            UpdateBuilder.create().check();// 启动更新任务
         }
     }
 

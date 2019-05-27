@@ -3,6 +3,7 @@ package com.jianchi.fsp.buddhismnetworkradio.mp3;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -127,12 +128,11 @@ public class AudioPlayer {
     }
 
     /**
-     * 监听事件
+     * 监听事件 .DefaultEventListener
      */
-    class APEventListener extends Player.DefaultEventListener{
+    class APEventListener implements Player.EventListener{
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-            super.onPlayerStateChanged(playWhenReady, playbackState);
             if(mEventListener!=null){
                 //if(isPlaying())
                 if (playbackState == Player.STATE_BUFFERING) {
@@ -142,6 +142,7 @@ public class AudioPlayer {
                 } else if (playbackState == Player.STATE_ENDED) {
                     mEventListener.ended();
                 }
+                Log.i("Player.EventListener", String.valueOf(playbackState));
             }
 
         }
