@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "com.jianchi.fsp.buddhismnetworkradio"
         minSdkVersion 17
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 50104
         versionName '5.1.4'
         ndk {
