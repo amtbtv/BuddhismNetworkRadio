@@ -21,9 +21,9 @@
     <string name="lxwm">联系我们</string>
     <string name="spjzsb">视频加载失败。\r\n请检查网络重新加载。</string>
     <string name="gfwz">官方网站</string>
-    <string name="pl">噗浪</string>
+    <string name="facebook">FaceBook</string>
     <string name="xlwb">新浪微博</string>
-    <string name="txwb">腾讯微博</string>
+    <string name="line">Line@</string>
     <string name="czxx">电子信箱</string>
     <string name="wxh">微信号</string>
     <string name="action_news">新闻</string>
@@ -58,11 +58,11 @@
     <string name="bt_check_upgrade">检测更新</string>
     <string name="amtb_png_url">http://www.amtb.cn/amtbapp/amtbpng.png</string>
     <string name="dzxx_url">amtb@amtb.tw</string>
-    <string name="pl_url">http://www.plurk.com/amtbtw</string>
+    <string name="facebook_url">https://www.facebook.com/amtbtw/</string>
     <string name="site_url">http://www.amtb.cn/amtbapp/</string>
-    <string name="txwb_url">http://t.qq.com/amtbhz</string>
+    <string name="line_url">https://line.me/R/ti/p/@amtbtw</string>
     <string name="xlwb_url">http://weibo.com/amtbtw</string>
-    <string name="devxx_url">amtb@mail.sfzd5.com</string>
+    <string name="devxx_url">amtb@hwadzan.com</string>
     <string name="devxx">问题反馈电子信箱</string>
     <string name="no_network">網絡未連接</string>
     <string name="load_fail">数据载入出错</string>
@@ -111,4 +111,5 @@
     <string name="api_msg_network_fail">网络出错</string>
     <string name="api_unknow_fail">未知错误</string>
     <string name="share_need_storage_permission">分享图片需要读写权限</string>
+    <string name="facebook_url2">https://www.facebook.com/hdamtb/</string>
 </resources>

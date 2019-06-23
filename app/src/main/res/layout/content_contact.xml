@@ -59,12 +59,20 @@
                     app:badgeText="@string/site_url" />
 
                 <com.beardedhen.androidbootstrap.BootstrapButton
-                    android:id="@+id/bt_pl"
+                    android:id="@+id/bt_facebook"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:gravity="left"
-                    android:text="@string/pl"
-                    app:badgeText="@string/pl_url" />
+                    android:text="@string/facebook"
+                    app:badgeText="@string/facebook_url" />
+
+                <com.beardedhen.androidbootstrap.BootstrapButton
+                    android:id="@+id/bt_facebook2"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="left"
+                    android:text="@string/facebook"
+                    app:badgeText="@string/facebook_url2" />
 
                 <com.beardedhen.androidbootstrap.BootstrapButton
                     android:id="@+id/bt_xlwb"
@@ -75,12 +83,12 @@
                     app:badgeText="@string/xlwb_url" />
 
                 <com.beardedhen.androidbootstrap.BootstrapButton
-                    android:id="@+id/bt_txwb"
+                    android:id="@+id/bt_line"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:gravity="left"
-                    android:text="@string/txwb"
-                    app:badgeText="@string/txwb_url" />
+                    android:text="@string/line"
+                    app:badgeText="@string/line_url" />
 
                 <com.beardedhen.androidbootstrap.BootstrapButton
                     android:id="@+id/bt_dzxx"

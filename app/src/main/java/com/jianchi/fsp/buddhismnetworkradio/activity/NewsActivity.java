@@ -2,11 +2,14 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -14,6 +17,7 @@ import android.widget.Toast;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.NewsListAdapter;
+import com.jianchi.fsp.buddhismnetworkradio.model.News;
 import com.jianchi.fsp.buddhismnetworkradio.model.StringResult;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
@@ -29,7 +33,7 @@ import java.util.regex.Pattern;
 public class NewsActivity extends AppCompatActivity {
     BApplication app;
     ListView lv_news;
-    List<String> news;
+    List<News> news;
     ProgressDialog proDialog;
 
     @Override
@@ -48,9 +52,23 @@ public class NewsActivity extends AppCompatActivity {
         app = (BApplication)getApplication();
         lv_news = (ListView) findViewById(R.id.lv_news);
 
+        lv_news.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                News news = (News) view.getTag();
+                //https://www.hwadzan.tv/news/all_news.html
+                String url = news.url.startsWith("/") ? "https://www.hwadzan.tv"+news.url : news.url;
+                Uri uri = Uri.parse(url);
+                Intent intent = new Intent();
+                intent.setAction("android.intent.action.VIEW");
+                intent.setData(uri);
+                startActivity(intent);
+            }
+        });
+
         proDialog = ProgressDialog.show(NewsActivity.this, getString(R.string.zrsj), getString(R.string.sjjzz));
         AmtbApi<StringResult> api = new AmtbApi<StringResult>(UrlHelper.getNewsUrl(),
-                "big5",
+                "utf-8",
                 new AmtbApiCallBack<StringResult>(){
             @Override
             public void callBack(StringResult obj) {
@@ -59,7 +77,7 @@ public class NewsActivity extends AppCompatActivity {
                     news = getNewsList(obj.string);
 
                     lv_news.setAdapter(new NewsListAdapter(NewsActivity.this, news));
-                    setListViewHeightBasedOnChildren(lv_news);
+                    //setListViewHeightBasedOnChildren(lv_news);
                 } else {
                     Toast.makeText(NewsActivity.this, obj.msg, Toast.LENGTH_LONG).show();
                 }
@@ -86,25 +104,23 @@ public class NewsActivity extends AppCompatActivity {
         }
 
         ViewGroup.LayoutParams params = listView.getLayoutParams();
-        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1)) + dp2px(480);
         listView.setLayoutParams(params);
     }
 
+    int dp2px(float dpValue) { final float scale = getResources().getDisplayMetrics().density; return (int) (dpValue * scale + 0.5f); }
 
-    public List<String> getNewsList(String html) {
-        //<div id='bul_1'><target='_top' class='usetext' onMouseOver="this.className='applettext2';" onMouseOut="this.className='applettext1';">8月10日起重播《淨土大經科註（第四回）》。</a></div><div id='bul_2'><a href='../news/news_content.asp?web_index=398&web_select_type=6' target='_blank' target='_top' class='usetext' onMouseOver="this.className='applettext2';" onMouseOut="this.className='applettext1';">微雲、百度網盤下載：講座影音、文字、菁華短片、卡片圖檔、電子書等（4月12日更新）。</a></div>
-
-        Pattern newsListPattern = Pattern.compile("<div id='bul_\\d'>(.*?)</div>");
-        Pattern htmlTagPattern = Pattern.compile("<[^>]*>");
+    public List<News> getNewsList(String html) {
+        //<li><span>2019-06-03</span><a href='https://edu.hwadzan.tv/livetv' title='6月3日起<sup>上</sup>淨<sup>下</sup>空老和尚暫停講經'
+        Pattern newsListPattern = Pattern.compile("<li><span>([^<]*)</span><a href='([^']*)' title='([^']*)'");
         Matcher m = newsListPattern.matcher(html);
-        List<String> newsList = new ArrayList<String>();
+        List<News> newsList = new ArrayList<>();
         while (m.find()) {
-            String nm = m.group(1);
-            if (nm.startsWith("<")) {
-                Matcher hm = htmlTagPattern.matcher(nm);
-                nm = hm.replaceAll("");
-            }
-            newsList.add(nm);
+            News news = new News();
+            news.time = m.group(1);
+            news.url = m.group(2);
+            news.title = m.group(3);
+            newsList.add(news);
         }
         if (newsList.size() == 0)
             MyLog.w("GetNewsList onResponse", html);

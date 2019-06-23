@@ -40,7 +40,8 @@ public class UrlHelper {
     }
 
     public static String getNewsUrl(){
-        return "http://www.amtb.tw/tvchannel/show_marquee.asp";
+        return "https://www.hwadzan.tv/news/all_news.html";
+        //return "http://www.amtb.tw/tvchannel/show_marquee.asp";
     }
 
     //http://amtbapi.amtb.de/amtbtv/docs/21-786-0001_en/html/zh_TW

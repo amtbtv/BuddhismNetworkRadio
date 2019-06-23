@@ -1,36 +1,29 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.beardedhen.androidbootstrap.BootstrapLabel;
-import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
-import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
 
 public class ContactActivity extends BaseActivity {
 
@@ -40,9 +33,9 @@ public class ContactActivity extends BaseActivity {
     BootstrapLabel version;
 
     BootstrapButton bt_site;
-    BootstrapButton bt_pl;
+    BootstrapButton bt_facebook;
     BootstrapButton bt_xlwb;
-    BootstrapButton bt_txwb;
+    BootstrapButton bt_line;
 
     BootstrapButton bt_dzxx;
 
@@ -61,9 +54,9 @@ public class ContactActivity extends BaseActivity {
         version = (BootstrapLabel) findViewById(R.id.version);
 
         bt_site = (BootstrapButton) findViewById(R.id.bt_site);
-        bt_pl = (BootstrapButton) findViewById(R.id.bt_pl);
+        bt_facebook = (BootstrapButton) findViewById(R.id.bt_facebook);
         bt_xlwb = (BootstrapButton) findViewById(R.id.bt_xlwb);
-        bt_txwb = (BootstrapButton) findViewById(R.id.bt_txwb);
+        bt_line = (BootstrapButton) findViewById(R.id.bt_line);
 
         bt_dzxx = (BootstrapButton) findViewById(R.id.bt_dzxx);
 
@@ -84,10 +77,10 @@ public class ContactActivity extends BaseActivity {
             }
         });
 
-        bt_pl.setOnClickListener(new View.OnClickListener() {
+        bt_facebook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openUrl(getString(R.string.pl_url));
+                openUrl(getString(R.string.facebook_url));
             }
         });
 
@@ -98,10 +91,10 @@ public class ContactActivity extends BaseActivity {
             }
         });
 
-        bt_txwb.setOnClickListener(new View.OnClickListener() {
+        bt_line.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openUrl(getString(R.string.txwb_url));
+                openUrl(getString(R.string.line_url));
             }
         });
 
