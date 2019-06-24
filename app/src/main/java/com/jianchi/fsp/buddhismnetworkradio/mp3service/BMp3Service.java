@@ -104,12 +104,16 @@ public class BMp3Service extends Service {
             }
         }
 
+        /**
+         * 开始播放后，启动通知，并设置为前台服务
+         */
         @Override
         public void start() {
             Notification notification = mediaNotificationManager.startNotification(
                     mp3Program.programListItem.name,
                     mp3s.get(mp3Program.curMediaIdx).file
             );
+            //这里需要android.permission.FOREGROUND_SERVICE权限，已添加到
             startForeground(MediaNotificationManager.NOTI_CTRL_ID, notification);
         }
     };
