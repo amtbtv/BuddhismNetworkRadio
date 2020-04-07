@@ -21,6 +21,7 @@
     <application
         android:name=".BApplication"
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
@@ -30,13 +31,15 @@
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.StartActivity"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -48,46 +51,55 @@
             android:label="@string/lxwm"
             android:parentActivityName=".activity.StartActivity"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.NewsActivity"
             android:label="@string/zxxx"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.ScheduleActivity"
             android:label="@string/jmlb"
             android:parentActivityName=".activity.StartActivity"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.Mp3PlayerActivity"
             android:label="@string/title_activity_mp3_player"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.Mp3ManagerActivity"
             android:label="@string/title_activity_mp3_manager"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.DownLoadActivity"
             android:label="@string/title_activity_down_load"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.PickDownloadFolderActivity"
             android:label="@string/title_activity_pick_download_folder"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.SelectProgramActivity"
             android:label="@string/title_activity_select_program"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.DownloadSettingActivity"
             android:label="@string/title_activity_download_setting"
+            tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait" />
 
         <service
