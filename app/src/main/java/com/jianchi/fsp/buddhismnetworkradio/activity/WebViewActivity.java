@@ -1,10 +1,13 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.R;
@@ -28,10 +31,23 @@ public class WebViewActivity extends AppCompatActivity {
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setPluginState(WebSettings.PluginState.ON);
+        webView.setWebViewClient(new WebViewClient() {
+            //覆盖shouldOverrideUrlLoading 方法
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                //view.loadUrl(url);
+                Uri uri = Uri.parse(faYin.link);
+                Intent intent = new Intent();
+                intent.setAction("android.intent.action.VIEW");
+                intent.setData(uri);
+                startActivity(intent);
+                return true;
+            }
+        });
 
         String head = Tools.readRawFile(R.raw.fayin_html_head, this);
         String foot = Tools.readRawFile(R.raw.fayin_html_foot, this);
-        String content = faYin.content.rendered.replaceAll(" href=\"[^\"]*\"", " href=\"#\"");
+        String content = faYin.content.rendered; //.replaceAll(" href=\"[^\"]*\"", " href=\"#\"");
         String title = "<h3>"+faYin.title.rendered+"</h3>";
         String html = head + title + content + foot;
 
