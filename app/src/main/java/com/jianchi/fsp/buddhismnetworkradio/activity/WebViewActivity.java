@@ -36,7 +36,7 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 //view.loadUrl(url);
-                Uri uri = Uri.parse(faYin.link);
+                Uri uri = Uri.parse(url);
                 Intent intent = new Intent();
                 intent.setAction("android.intent.action.VIEW");
                 intent.setData(uri);
