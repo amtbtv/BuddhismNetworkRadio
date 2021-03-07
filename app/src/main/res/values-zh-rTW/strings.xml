@@ -112,4 +112,5 @@
     <string name="api_unknow_fail">未知錯誤</string>
     <string name="share_need_storage_permission">分享圖片需要讀寫權限</string>
     <string name="facebook_url2">https://www.facebook.com/hdamtb/</string>
+    <string name="bt_label_fyxl">法音宣流</string>
 </resources>

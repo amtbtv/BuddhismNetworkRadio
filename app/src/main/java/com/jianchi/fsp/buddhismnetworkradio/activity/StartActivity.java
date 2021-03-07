@@ -4,11 +4,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,23 +26,31 @@ import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
+import com.jianchi.fsp.buddhismnetworkradio.adapter.EndlessRecyclerOnScrollListener;
+import com.jianchi.fsp.buddhismnetworkradio.adapter.FaYinLoadMoreAdapter;
+import com.jianchi.fsp.buddhismnetworkradio.adapter.FaYinOnClickListener;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.Mp3ChannelListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.TvChannelListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.db.Mp3RecDBManager;
+import com.jianchi.fsp.buddhismnetworkradio.model.FaYin;
+import com.jianchi.fsp.buddhismnetworkradio.model.FaYinListResult;
 import com.jianchi.fsp.buddhismnetworkradio.model.Live;
 import com.jianchi.fsp.buddhismnetworkradio.model.LiveListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 import com.jianchi.fsp.buddhismnetworkradio.mp3service.BMp3Service;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
+import com.jianchi.fsp.buddhismnetworkradio.tools.FaYinApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import org.lzh.framework.updatepluginlib.UpdateBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,6 +68,7 @@ public class StartActivity extends BaseActivity {
 
     ListView lv_channel;//视频列表
     ListView lv_mp3;//音频列表
+    RecyclerView rv_fayin; //法音宣流
 
     ViewPager viewPager;
     private TabHost mTabHost;
@@ -63,9 +76,13 @@ public class StartActivity extends BaseActivity {
 
     List<Mp3Program> mp3Programs;//音频节目列表
     LiveListResult liveListResult;//视频节目列表
+    List<FaYin> faYinList = new ArrayList<>();//法音宣流数据
+    boolean faYinLoadAllOver = false; //全部载入
+    int faYinCurPageId = 0;
 
     TvChannelListAdapter tvChannelListAdapter;
     Mp3ChannelListAdapter mp3ChannelListAdapter;
+    FaYinLoadMoreAdapter faYinLoadMoreAdapter;
 
     ProgressBar progressBar;
 
@@ -89,6 +106,9 @@ public class StartActivity extends BaseActivity {
                     progressBar.setVisibility(View.GONE);
                     if(obj.isSucess) {
                         liveListResult = obj;
+
+                        loadMoreFaYin();
+
                         setUi();
                     } else {
                         Toast.makeText(getThisActivity(), obj.msg, Toast.LENGTH_LONG).show();
@@ -133,11 +153,20 @@ public class StartActivity extends BaseActivity {
                         .setContent(R.id.tab2)
                         .setIndicator(getString(R.string.bt_label_ypdb))
         );
+        mTabHost.addTab(
+                mTabHost.newTabSpec("rv_fayin")
+                        .setContent(R.id.tab3)
+                        .setIndicator(getString(R.string.bt_label_fyxl))
+        );
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         //音频和视频的列表视频，listview，在点击时判断点的是音频还是视频
         lv_channel = (ListView) getLayoutInflater().inflate(R.layout.channel_list_view, null);
         lv_mp3 = (ListView) getLayoutInflater().inflate(R.layout.channel_list_view, null);
+
+        rv_fayin = (RecyclerView) getLayoutInflater().inflate(R.layout.fayin_rv_view, null);
+        rv_fayin.setLayoutManager(new GridLayoutManager(this, 2));
+
 
         lv_channel.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -167,6 +196,36 @@ public class StartActivity extends BaseActivity {
             }
         });
 
+        faYinLoadMoreAdapter = new FaYinLoadMoreAdapter(faYinList);
+        faYinLoadMoreAdapter.setOnItemClickListener(new FaYinOnClickListener() {
+            @Override
+            public void onClick(View v, FaYin faYin) {
+                /* 跳出在浏览器中打开
+                Uri uri = Uri.parse(faYin.link);
+                Intent intent = new Intent();
+                intent.setAction("android.intent.action.VIEW");
+                intent.setData(uri);
+                startActivity(intent);
+                */
+                //自己解析content，来播放视频
+                Intent intent = new Intent(StartActivity.this, WebViewActivity.class);
+                intent.putExtra("fayin", new Gson().toJson(faYin));
+                startActivity(intent);
+            }
+        });
+        rv_fayin.addOnScrollListener(new EndlessRecyclerOnScrollListener() {
+            @Override
+            public void onLoadMore() {
+                faYinLoadMoreAdapter.setLoadState(faYinLoadMoreAdapter.LOADING);
+                if (!faYinLoadAllOver) {
+                    loadMoreFaYin();
+                } else {
+                    // 显示加载到底的提示
+                    faYinLoadMoreAdapter.setLoadState(faYinLoadMoreAdapter.LOADING_END);
+                }
+            }
+        });
+
         //载入音频节目列表数据，并排序
         Mp3RecDBManager db = new Mp3RecDBManager(this);
         mp3Programs = db.getAllMp3Rec();
@@ -177,6 +236,8 @@ public class StartActivity extends BaseActivity {
         //默认初始为视频节目
         tvChannelListAdapter = new TvChannelListAdapter(StartActivity.this, liveListResult);
         lv_channel.setAdapter(tvChannelListAdapter);
+
+        rv_fayin.setAdapter(faYinLoadMoreAdapter);
 
         //设置viewPager的监听器
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -226,14 +287,46 @@ public class StartActivity extends BaseActivity {
             public void onTabChanged(String tabId) {
                 if(tabId.equals("lv_channel")){
                     viewPager.setCurrentItem(0, true);
-                }else{
+                }else if(tabId.equals("lv_mp3")){
                     viewPager.setCurrentItem(1, true);
+                } else {
+                    viewPager.setCurrentItem(2, true);
                 }
             }
         });
 
         viewPager.setAdapter(mPagerAdapter);
         viewPager.setCurrentItem(0);
+    }
+
+    public void loadMoreFaYin(){
+        if(app.isNetworkConnected()){
+            progressBar.setVisibility(View.VISIBLE);
+            faYinCurPageId ++;
+            //https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=1
+            FaYinApi<FaYinListResult> api = new FaYinApi<>(
+                    "https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=" + faYinCurPageId,
+                    new AmtbApiCallBack<FaYinListResult>() {
+                @Override
+                public void callBack(FaYinListResult obj) {
+                    progressBar.setVisibility(View.GONE);
+                    if(obj.isSucess) {
+                        faYinList.addAll(obj.faYinList);
+                        if(faYinLoadMoreAdapter!=null)
+                            faYinLoadMoreAdapter.setLoadState(faYinLoadMoreAdapter.LOADING_COMPLETE);
+                    } else {
+                        if(obj.msg == "loadover"){
+                            faYinLoadAllOver = true;
+                        } else {
+                            Toast.makeText(getThisActivity(), obj.msg, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+            });
+            api.execute(FaYinListResult.class);
+        } else {
+            Toast.makeText(getThisActivity(), R.string.no_network, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -314,12 +407,23 @@ public class StartActivity extends BaseActivity {
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
+        }
+
+        View takeView(int position){
+            View view = null;
+            if(position ==0)
+                view = lv_channel;
+            else if(position == 1)
+                view = lv_mp3;
+            else
+                view = rv_fayin;
+            return view;
         }
 
         @Override
         public Object instantiateItem(final ViewGroup container, int position) {
-            View view = position==0 ? lv_channel : lv_mp3;
+            View view = takeView(position);
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             container.addView(view, params);
             return view;
@@ -327,7 +431,7 @@ public class StartActivity extends BaseActivity {
 
         @Override
         public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView(position==0 ? lv_channel : lv_mp3);
+            container.removeView(takeView(position));
         }
     };
 }
