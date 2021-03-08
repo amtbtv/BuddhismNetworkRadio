@@ -1,0 +1,19 @@
+
+<script>
+	var x = document.getElementsByClassName("wp-block-fv-player-gutenberg-basic");
+	if(x.length>0){
+		for (var i = 0; i < x.length; i++) {
+			var p = x[i].children[0];
+			var j = p.getAttribute("data-item");
+			//{"sources":[{"src":"https:\/\/hk2.amtb.de\/redirect\/media\/mp4\/29\/29-513\/29-513-0535.mp4","type":"video\/mp4"}],"id":"148"}
+			var o = eval("(" + j + ")");
+			var mp4url = o.sources[0].src;
+			p.innerHTML = "<video src='"+mp4url+"' controls='controls' autoplay='autoplay'></video>";
+		}
+	} else {
+
+	}
+</script>
+</body>
+</html>
+

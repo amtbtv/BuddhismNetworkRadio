@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style type="text/css" id="wp-custom-css">
+	.wp-block-verse {
+		background: rgba(128, 128, 128, 0.1);
+		border: none;
+			border-top-width: medium;
+			border-right-width: medium;
+			border-bottom-width: medium;
+			border-left-color: currentcolor;
+			border-left-style: none;
+			border-left-width: medium;
+		border-width: 0;
+			border-left-width: 0px;
+		border-left: 4px solid rgba(128, 128, 128, 0.4);
+		box-shadow: none;
+		font-family: 'Alegreya', serif;
+		font-size: 1em;
+		font-style: italic;
+		margin: 1.5em;
+		padding: 1em 1.5em 1em 1.2em !important;
+		width: 90%;
+		border-radius: 0px;
+	}
+
+    video {
+        height: 100%;
+        width: 100%;
+        max-width: 640px;
+        max-height: 360px;
+        display: block;
+    }
+	</style>
+<body>
