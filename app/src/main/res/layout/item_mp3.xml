@@ -8,15 +8,13 @@
     android:paddingLeft="8dp"
     android:paddingRight="8dp">
 
-    <com.beardedhen.androidbootstrap.AwesomeTextView
+    <com.mikepenz.iconics.view.IconicsImageView
         android:id="@+id/icon_play"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:padding="8dp"
-        app:bootstrapBrand="success"
-        app:fontAwesomeIcon="fa_play"
-        />
-
+        app:iiv_color="@android:color/holo_green_dark"
+        app:iiv_icon="faw-play" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,16 +29,8 @@
             android:layout_marginBottom="4dp"
             android:maxLines="1"
             android:text="Small Text"
-            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textAppearance="@style/item_title"
             android:textSize="12sp" />
-
-        <com.beardedhen.androidbootstrap.BootstrapBadge
-            android:id="@+id/process_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:visibility="gone"
-            app:badgeText="" />
     </LinearLayout>
 
 

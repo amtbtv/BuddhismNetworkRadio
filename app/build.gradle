@@ -2,13 +2,21 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
     defaultConfig {
         applicationId "com.jianchi.fsp.buddhismnetworkradio"
-        minSdkVersion 17
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 30
         versionCode 50106
-        versionName '5.2.0'
+        versionName '5.3.0'
+        manifestPlaceholders = [
+                //从 3.1.2.0 版本开始，APPID 占位符从 GETUI_APP_ID 切换为 GETUI_APPID
+                //后续所有产品的 APPID 均统一配置为 GETUI_APPID 占位符
+                GETUI_APPID         : "t69HmLSYXQ9aN31cox89N8",
+                //渠道若为纯数字则不能超过 int 表示的范围。
+                GT_INSTALL_CHANNEL  : "hwadzan.com"
+        ]
         ndk {
             //设置支持的SO库架构
             abiFilters 'armeabi', 'x86', 'armeabi-v7a', 'x86_64', 'arm64-v8a'
@@ -34,25 +42,37 @@ android {
             dirs 'libs'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:2.0.1'
-    implementation 'com.android.support:design:28.0.0'
-    implementation 'com.android.support:support-v4:28.0.0'
-    implementation 'com.android.support:support-vector-drawable:28.0.0'
-    testImplementation 'junit:junit:4.13'
-    implementation 'com.google.android.exoplayer:exoplayer:2.9.4'
-    implementation 'com.beardedhen:androidbootstrap:2.3.2'
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    testImplementation 'junit:junit:4.13.2'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.squareup.okhttp3:okhttp:3.14.1'
-    implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
-    implementation 'com.liulishuo.okdownload:sqlite:1.0.5'
-    implementation 'com.liulishuo.okdownload:okhttp:1.0.5'
-    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
+    implementation 'com.getui:gtsdk:3.2.2.0'  //个推SDK
+    implementation 'com.getui:gtc:3.1.2.0'  //个推核心组件
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.4'
+
+    implementation "com.mikepenz:iconics-core:5.2.8"
+    implementation "com.mikepenz:iconics-views:5.2.8"
+    implementation 'com.mikepenz:fontawesome-typeface:5.9.0.2-kotlin@aar'
     //自动升级检测
     implementation "com.github.yjfnypeu:UpdatePlugin:3.1.2"
+
+    //xxxxxxxxxxxxxx
+    //implementation 'com.beardedhen:androidbootstrap:2.3.2'
+
 }

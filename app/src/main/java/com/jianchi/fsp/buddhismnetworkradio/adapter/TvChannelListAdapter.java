@@ -8,12 +8,12 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.beardedhen.androidbootstrap.AwesomeTextView;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.activity.ScheduleActivity;
 import com.jianchi.fsp.buddhismnetworkradio.model.Live;
 import com.jianchi.fsp.buddhismnetworkradio.model.LiveListResult;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
+import com.mikepenz.iconics.view.IconicsImageView;
 
 /**
  * Created by fsp on 16-7-6.
@@ -57,7 +57,7 @@ public class TvChannelListAdapter extends BaseAdapter {
         convertView.setTag(holder);
         TextView txt = (TextView) convertView.findViewById(R.id.txt);
         txt.setText(TW2CN.getInstance(context).toLocal(holder.name));
-        AwesomeTextView bt_showSchedule = (AwesomeTextView) convertView.findViewById(R.id.bt_showSchedule);
+        IconicsImageView bt_showSchedule = (IconicsImageView) convertView.findViewById(R.id.bt_showSchedule);
         bt_showSchedule.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

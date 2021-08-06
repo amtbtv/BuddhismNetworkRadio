@@ -8,19 +8,18 @@
     android:paddingLeft="8dp"
     android:paddingRight="8dp">
 
-    <com.beardedhen.androidbootstrap.AwesomeTextView
+    <com.mikepenz.iconics.view.IconicsImageView
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:padding="8dp"
-        app:bootstrapBrand="success"
-        app:fontAwesomeIcon="fa_play"
-        />
-
+        app:iiv_color="@android:color/holo_green_dark"
+        app:iiv_icon="faw-chevron-right" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/banner48"
         android:gravity="center_vertical"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <TextView
@@ -30,8 +29,7 @@
             android:maxLines="1"
             android:text="Small Text"
             android:layout_marginBottom="4dp"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textSize="12sp" />
+            android:textAppearance="@style/item_title" />
 
         <TextView
             android:id="@+id/info"
@@ -43,5 +41,24 @@
 
     </LinearLayout>
 
+    <com.mikepenz.iconics.view.IconicsButton
+        android:id="@+id/icon_play_mp3"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:padding="1dp"
+        android:text="{faw-music}"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="16sp" />
+
+    <com.mikepenz.iconics.view.IconicsButton
+        android:id="@+id/icon_play_video"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:padding="1dp"
+        android:text="{faw-video}"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="16sp" />
 
 </LinearLayout>

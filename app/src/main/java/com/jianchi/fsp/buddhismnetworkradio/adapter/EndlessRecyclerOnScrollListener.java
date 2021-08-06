@@ -1,7 +1,7 @@
 package com.jianchi.fsp.buddhismnetworkradio.adapter;
 
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * RecyclerView滑动监听

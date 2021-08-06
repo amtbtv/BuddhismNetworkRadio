@@ -1,16 +1,16 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
@@ -22,12 +22,10 @@ import com.jianchi.fsp.buddhismnetworkradio.model.ProgramListResult;
 import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
-import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.List;
-import java.util.Locale;
 
 public class Mp3ManagerActivity extends AppCompatActivity {
 

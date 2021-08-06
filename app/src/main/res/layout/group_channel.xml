@@ -2,11 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/banner48"
+    android:background="@color/bw_background"
     android:gravity="center_vertical"
-    android:background="@color/bootstrap_well_border_color"
     android:paddingLeft="36dp"
-    android:paddingRight="8dp"
-    >
+    android:paddingRight="8dp">
 
     <TextView
         android:id="@+id/txt"
@@ -16,6 +15,7 @@
         android:gravity="center_vertical"
         android:maxLines="1"
         android:text="Small Text"
-        android:textAppearance="@style/TextAppearance.AppCompat.Light.SearchResult.Title" /> />
+        android:textAppearance="@style/item_title" />
+    />
 
 </LinearLayout>

@@ -26,10 +26,10 @@
             android:id="@+id/txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
             android:maxLines="1"
             android:text="Small Text"
-            android:layout_marginBottom="4dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Light.SearchResult.Title" />
+            android:textAppearance="@style/item_title" />
             android:textSize="12sp" />
 
         <TextView

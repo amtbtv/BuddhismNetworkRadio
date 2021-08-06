@@ -7,10 +7,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.beardedhen.androidbootstrap.AwesomeTextView;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.model.FileItem;
-import com.jianchi.fsp.buddhismnetworkradio.mp3.Mp3Program;
+import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.iconics.typeface.library.fontawesome.FontAwesome;
+import com.mikepenz.iconics.view.IconicsImageView;
 
 import java.util.List;
 
@@ -24,11 +25,16 @@ public class Mp3ListAdapter extends BaseAdapter {
     Context context;
     public int curMediaIdx;
 
+    IconicsDrawable iconMusic;
+    IconicsDrawable iconPlay;
+
     public Mp3ListAdapter(Context context, List<FileItem> mediaList, int curMediaIdx){
         this.context=context;
         this.mediaList = mediaList;
         this.curMediaIdx = curMediaIdx;
         this.mInflater = LayoutInflater.from(context);
+        iconMusic = new IconicsDrawable(context, FontAwesome.Icon.faw_music);
+        iconPlay = new IconicsDrawable(context, FontAwesome.Icon.faw_play);
     }
 
     public FileItem getCurFileItem() {
@@ -69,13 +75,13 @@ public class Mp3ListAdapter extends BaseAdapter {
 
         convertView.setTag(mp3);
 
-        AwesomeTextView icon_play = (AwesomeTextView) convertView.findViewById(R.id.icon_play);
+        IconicsImageView icon_play = (IconicsImageView) convertView.findViewById(R.id.icon_play);
         if(position == curMediaIdx){
-            icon_play.setFontAwesomeIcon("fa-music");
-            convertView.setBackgroundResource(R.color.bootstrap_brand_warning);
+            icon_play.setIcon(iconMusic);
+            convertView.setBackgroundResource(R.color.tab_background);
         } else {
-            icon_play.setFontAwesomeIcon("fa_play");
-            convertView.setBackgroundResource(R.color.bootstrap_gray_lightest);
+            icon_play.setIcon(iconPlay);
+            convertView.setBackgroundResource(R.color.design_default_color_background);
         }
 
         TextView txt = (TextView) convertView.findViewById(R.id.txt);

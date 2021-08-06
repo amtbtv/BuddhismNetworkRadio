@@ -1,40 +1,51 @@
 package com.jianchi.fsp.buddhismnetworkradio.activity;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
+import com.jianchi.fsp.buddhismnetworkradio.LoadMoreListView;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.adapter.NewsListAdapter;
 import com.jianchi.fsp.buddhismnetworkradio.model.News;
+import com.jianchi.fsp.buddhismnetworkradio.model.NewsCategorie;
+import com.jianchi.fsp.buddhismnetworkradio.model.NewsPager;
 import com.jianchi.fsp.buddhismnetworkradio.model.StringResult;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
-import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NewsActivity extends AppCompatActivity {
     BApplication app;
-    ListView lv_news;
-    List<News> news;
-    ProgressDialog proDialog;
+
+    ViewPager viewPager;
+    TabLayout tabLayout;
+    ProgressBar proBar;
+
+    List<NewsCategorie> newsCategorieList;
+    HashMap<NewsCategorie, NewsPager> newsPagerHashMap;
+
+    List<View> viewList;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -50,80 +61,148 @@ public class NewsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         app = (BApplication)getApplication();
-        lv_news = (ListView) findViewById(R.id.lv_news);
 
-        lv_news.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                News news = (News) view.getTag();
-                //https://www.hwadzan.tv/news/all_news.html
-                String url = news.url.startsWith("/") ? "https://www.hwadzan.tv"+news.url : news.url;
-                Uri uri = Uri.parse(url);
-                Intent intent = new Intent();
-                intent.setAction("android.intent.action.VIEW");
-                intent.setData(uri);
-                startActivity(intent);
-            }
-        });
+        viewPager = (ViewPager) findViewById(R.id.view_pager);
+        tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        proBar = findViewById(R.id.proBar);
 
-        proDialog = ProgressDialog.show(NewsActivity.this, getString(R.string.zrsj), getString(R.string.sjjzz));
-        AmtbApi<StringResult> api = new AmtbApi<StringResult>(UrlHelper.getNewsUrl(),
+        proBar.setVisibility(View.VISIBLE);
+        loadNewsCategorieList();
+    }
+
+    void loadNewsCategorieList(){
+        String url = UrlHelper.getNewsCategorieUrl();
+        AmtbApi<StringResult> api = new AmtbApi<StringResult>(url,
                 "utf-8",
                 new AmtbApiCallBack<StringResult>(){
-            @Override
-            public void callBack(StringResult obj) {
-                if (proDialog != null) proDialog.dismiss();
-                if(obj.isSucess){
-                    news = getNewsList(obj.string);
+                    @Override
+                    public void callBack(StringResult obj) {
+                        proBar.setVisibility(View.INVISIBLE);
+                        if(obj.isSucess){
+                            String newsCategoriesJson = obj.string;
+                            newsCategorieList = new Gson().fromJson(newsCategoriesJson, new TypeToken<List<NewsCategorie>>() {}.getType());
+                            viewList = new ArrayList<>();
 
-                    lv_news.setAdapter(new NewsListAdapter(NewsActivity.this, news));
-                    //setListViewHeightBasedOnChildren(lv_news);
-                } else {
-                    Toast.makeText(NewsActivity.this, obj.msg, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+                            newsPagerHashMap = new HashMap<>();
+                            LayoutInflater mInflater = LayoutInflater.from(NewsActivity.this);
+                            for(NewsCategorie nc : newsCategorieList){
+                                NewsPager newsPager = new NewsPager(nc);
+                                View v = mInflater.inflate(R.layout.load_more_listview, null);
+                                LoadMoreListView loadMoreListView = v.findViewById(R.id.lv);
+                                loadMoreListView.setTag(newsPager);
+                                loadMoreListView.setOnLoadMoreListener(loadMoreListener);
+                                loadMoreListView.setOnItemClickListener(itemClickListener);
+                                NewsListAdapter adapter = new NewsListAdapter(NewsActivity.this, newsPager);
+                                loadMoreListView.setAdapter(adapter);
+                                newsPager.adapter = adapter;
+                                viewList.add(v);
+                            }
+                            ViewPagerAdapter viewPagerAdapter=new ViewPagerAdapter(viewList);
+                            viewPager.setAdapter(viewPagerAdapter);
+                            tabLayout.setupWithViewPager(viewPager);
+                        }
+                    }
+                });
         api.execute(StringResult.class);
     }
-    /**
-     * 计算弄表高度
-     * @param listView
-     */
-    public void setListViewHeightBasedOnChildren(ListView listView) {
-        ListAdapter listAdapter = listView.getAdapter();
-        if (listAdapter == null) {
-            // pre-condition
-            return;
-        }
 
-        int totalHeight = 0;
-        for (int i = 0; i < listAdapter.getCount(); i++) {
-            View listItem = listAdapter.getView(i, null, listView);
-            listItem.measure(0, 0);
-            totalHeight += listItem.getMeasuredHeight();
+    LoadMoreListView.OnLoadMoreListener loadMoreListener = new LoadMoreListView.OnLoadMoreListener() {
+        @Override
+        public void onLoadMore(LoadMoreListView loadMoreListView) {
+            NewsPager newsPager = (NewsPager)loadMoreListView.getTag();
+            newsPager.isLoading = true;
+            int per_page = 10;
+            String url = UrlHelper.getNewsUrl(newsPager.nc.id, newsPager.pager + 1, per_page);
+            AmtbApi<StringResult> api = new AmtbApi<StringResult>(url,
+                    "utf-8",
+                    new AmtbApiCallBack<StringResult>(){
+                        @Override
+                        public void callBack(StringResult obj) {
+                            if(obj.isSucess){
+                                newsPager.pager += 1;
+                                List<News> news = getNewsList(obj.string);
+                                if(news.size() < per_page){
+                                    loadMoreListView.onLoadMoreComplete();
+                                } else {
+                                    loadMoreListView.onLoadMoreFinish();
+                                }
+                                if(news.size()>0){
+                                    newsPager.newsList.addAll(news);
+                                    newsPager.adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+            api.execute(StringResult.class);
         }
+    };
 
-        ViewGroup.LayoutParams params = listView.getLayoutParams();
-        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1)) + dp2px(480);
-        listView.setLayoutParams(params);
+    AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            if(view.getTag()==null)
+                return;
+            News news = (News) view.getTag();
+            //https://www.hwadzan.tv/news/all_news.html
+            String url = news.link;
+            Uri uri = Uri.parse(url);
+            Intent intent = new Intent();
+            intent.setAction("android.intent.action.VIEW");
+            intent.setData(uri);
+            startActivity(intent);
+        }
+    };
+
+    public List<News> getNewsList(String json) {
+        if(json.contains("rest_post_invalid_page_number")){
+            return new ArrayList<>();
+        } else {
+            return new Gson().fromJson(json, new TypeToken<List<News>>() {}.getType());
+        }
     }
 
-    int dp2px(float dpValue) { final float scale = getResources().getDisplayMetrics().density; return (int) (dpValue * scale + 0.5f); }
 
-    public List<News> getNewsList(String html) {
-        //<li><span>2019-06-03</span><a href='https://edu.hwadzan.tv/livetv' title='6月3日起<sup>上</sup>淨<sup>下</sup>空老和尚暫停講經'
-        Pattern newsListPattern = Pattern.compile("<li><span>([^<]*)</span><a href='([^']*)' title='([^']*)'");
-        Matcher m = newsListPattern.matcher(html);
-        List<News> newsList = new ArrayList<>();
-        while (m.find()) {
-            News news = new News();
-            news.time = m.group(1);
-            news.url = m.group(2);
-            news.title = m.group(3);
-            newsList.add(news);
+    class ViewPagerAdapter extends PagerAdapter {
+        private List<View> viewList;
+
+        public ViewPagerAdapter(List<View> viewList) {
+            this.viewList=viewList;
         }
-        if (newsList.size() == 0)
-            MyLog.w("GetNewsList onResponse", html);
-        return newsList;
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            container.removeView(viewList.get(position));
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            View v = viewList.get(position);
+            LoadMoreListView loadMoreListView = v.findViewById(R.id.lv);
+            NewsPager newsPager = (NewsPager)loadMoreListView.getTag();
+            if(newsPager.pager == 0 && newsPager.hasNext && !newsPager.isLoading){
+                loadMoreListView.showFooterView();
+                loadMoreListView.loadMore();
+            }
+            container.addView(v);
+            return v;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            View v = viewList.get(position);
+            LoadMoreListView loadMoreListView = v.findViewById(R.id.lv);
+            NewsPager newsPager = (NewsPager)loadMoreListView.getTag();
+            return newsPager.nc.title;
+        }
+
+        @Override
+        public int getCount() {
+            return viewList.size();
+        }
+
+        @Override
+        public boolean isViewFromObject(View view, Object object) {
+            return view==object;
+        }
     }
 }

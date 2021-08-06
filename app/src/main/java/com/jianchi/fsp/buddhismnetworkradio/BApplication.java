@@ -9,11 +9,13 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
-import com.beardedhen.androidbootstrap.TypefaceProvider;
+//import com.beardedhen.androidbootstrap.TypefaceProvider;
 import com.google.gson.Gson;
+import com.igexin.sdk.PushManager;
 import com.jianchi.fsp.buddhismnetworkradio.tools.CacheOKHttp;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+
 
 import org.lzh.framework.updatepluginlib.UpdateConfig;
 import org.lzh.framework.updatepluginlib.base.UpdateParser;
@@ -68,7 +70,11 @@ public class BApplication extends Application {
         sApp = this;
         http = new CacheOKHttp(this);
 
-        TypefaceProvider.registerDefaultIconSets();
+        //消息推送
+        PushManager.getInstance().initialize(this);
+
+        //TypefaceProvider.registerDefaultIconSets();
+
         UpdateConfig.getConfig()
                 .setUrl(Upgrade_Url)// 配置检查更新的API接口
                 .setUpdateParser(new UpdateParser() {
@@ -78,6 +84,7 @@ public class BApplication extends Application {
                         return update;
                     }
                 });
+
     }
 
     /**

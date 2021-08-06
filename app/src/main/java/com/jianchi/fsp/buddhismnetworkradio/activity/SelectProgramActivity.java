@@ -2,10 +2,7 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +15,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
@@ -26,14 +26,12 @@ import com.jianchi.fsp.buddhismnetworkradio.model.ChannelListResult;
 import com.jianchi.fsp.buddhismnetworkradio.model.Program;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApi;
 import com.jianchi.fsp.buddhismnetworkradio.tools.AmtbApiCallBack;
-import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class SelectProgramActivity extends AppCompatActivity {
 
@@ -221,16 +219,21 @@ public class SelectProgramActivity extends AppCompatActivity {
             txt.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.name));
 
             TextView info = (TextView) convertView.findViewById(R.id.info);
-            info.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(programListItem.name));
+            String infoStr = programListItem.recDate
+                    + "("
+                    + (programListItem.mp3.equals("1") ? getString(R.string.voice) : "")
+                    + (programListItem.mp4.equals("1") ? getString(R.string.movie) : "")
+                    + ")";
+            info.setText(TW2CN.getInstance(SelectProgramActivity.this).toLocal(infoStr));
 
             CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
 
             if(programListItem == selectedProgramListItem){ //未添加到数据库，即未被选择，选择的必定已经添加到了数据库
                 checkBox.setChecked(true);
-                convertView.setBackgroundResource(R.color.bootstrap_brand_warning);
+                convertView.setBackgroundResource(R.color.bw_background);
             } else {
                 checkBox.setChecked(false);
-                convertView.setBackgroundResource(R.color.bootstrap_gray_lightest);
+                convertView.setBackgroundResource(R.color.bw_background);
             }
 
             return convertView;

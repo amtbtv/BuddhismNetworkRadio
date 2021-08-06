@@ -20,8 +20,8 @@
             android:maxLines="2"
             android:layout_marginRight="4dp"
             android:text="空老和尚暫停講經空老和尚暫停講經空老和尚暫停講經空老和尚暫停講經"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textColor="@android:color/primary_text_light_nodisable" />
+            android:textAppearance="@style/item_title"
+            android:textColor="@android:color/black" />
 
         <TextView
             android:id="@+id/time"
@@ -33,7 +33,6 @@
     </LinearLayout>
 
     <ImageView
-        android:id="@+id/imageView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@mipmap/ic_item_program" />

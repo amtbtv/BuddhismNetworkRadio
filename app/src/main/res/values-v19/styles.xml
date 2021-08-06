@@ -1,5 +1,1 @@
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
-<style name="AppTheme.Main" parent="AppTheme.NoActionBar">
-    <item name="android:windowTranslucentStatus">true</item>
-</style>
-</resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"></resources>

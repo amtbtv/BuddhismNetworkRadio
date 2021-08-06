@@ -8,14 +8,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.beardedhen.androidbootstrap.BootstrapButton;
-import com.beardedhen.androidbootstrap.BootstrapLabel;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 
@@ -30,16 +31,16 @@ public class ContactActivity extends BaseActivity {
     private static final int SDCARD_PERMISSION = 3655;
     private static final String MediaStoreSharedImageName = "BuddhismNetworkRadioSharedImage.png";
 
-    BootstrapLabel version;
+    TextView version;
 
-    BootstrapButton bt_site;
-    BootstrapButton bt_facebook;
-    BootstrapButton bt_xlwb;
-    BootstrapButton bt_line;
+    LinearLayout bt_site;
+    LinearLayout bt_facebook;
+    //LinearLayout bt_xlwb;
+    LinearLayout bt_line;
 
-    BootstrapButton bt_dzxx;
+    LinearLayout bt_dzxx;
 
-    BootstrapButton bt_invite_friends;
+    LinearLayout bt_invite_friends;
 
     ProgressBar proBar;
 
@@ -51,16 +52,16 @@ public class ContactActivity extends BaseActivity {
     @Override
     void onCreateDo() {
         proBar = (ProgressBar) findViewById(R.id.proBar);
-        version = (BootstrapLabel) findViewById(R.id.version);
+        version = (TextView) findViewById(R.id.version);
 
-        bt_site = (BootstrapButton) findViewById(R.id.bt_site);
-        bt_facebook = (BootstrapButton) findViewById(R.id.bt_facebook);
-        bt_xlwb = (BootstrapButton) findViewById(R.id.bt_xlwb);
-        bt_line = (BootstrapButton) findViewById(R.id.bt_line);
+        bt_site = (LinearLayout) findViewById(R.id.bt_site);
+        bt_facebook = (LinearLayout) findViewById(R.id.bt_facebook);
+        //bt_xlwb = (LinearLayout) findViewById(R.id.bt_xlwb);
+        bt_line = (LinearLayout) findViewById(R.id.bt_line);
 
-        bt_dzxx = (BootstrapButton) findViewById(R.id.bt_dzxx);
+        bt_dzxx = (LinearLayout) findViewById(R.id.bt_dzxx);
 
-        bt_invite_friends = (BootstrapButton) findViewById(R.id.bt_invite_friends);
+        bt_invite_friends = (LinearLayout) findViewById(R.id.bt_invite_friends);
 
         try {
             PackageInfo pi = getVersion();
@@ -84,12 +85,12 @@ public class ContactActivity extends BaseActivity {
             }
         });
 
-        bt_xlwb.setOnClickListener(new View.OnClickListener() {
+/*        bt_xlwb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openUrl(getString(R.string.xlwb_url));
             }
-        });
+        });*/
 
         bt_line.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,7 +1,10 @@
 package com.jianchi.fsp.buddhismnetworkradio.model;
 
 public class News {
-    public String time;
-    public String title;
-    public String url;
+    public long id;
+    public String date;
+    public Rendered title;
+    public String link;
+    public Rendered content;
 }
+

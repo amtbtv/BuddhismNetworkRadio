@@ -4,4 +4,9 @@ package com.jianchi.fsp.buddhismnetworkradio.model;
 public class FileItem {
     public String file;
     public int txt;
+
+    @Override
+    public String toString() {
+        return file;
+    }
 }

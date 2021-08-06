@@ -163,7 +163,7 @@ public class BMp3Service extends Service {
 
                 //载入数据并播放
                 isDowning = true;
-                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeMp3FilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
                 api.execute(FileListResult.class);
             } else {
                 //此处只有一种可能，即用户退出后又进入了播放界面
@@ -177,7 +177,7 @@ public class BMp3Service extends Service {
             if(mp3Program!=null && mp3Program.dbRecId>0){
                 //载入数据并播放
                 isDowning = true;
-                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeFilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
+                AmtbApi<FileListResult> api = new AmtbApi<>(UrlHelper.takeMp3FilesUrl(mp3Program.programListItem.identifier), new DownloadMp3FileListResult(mp3Program));
                 api.execute(FileListResult.class);
             }
         }
@@ -323,7 +323,7 @@ public class BMp3Service extends Service {
 
     //12-017-0019.mp3
     private String makeMp3Url(String mp3) {
-        return UrlHelper.makeMp3PlayUrl(mp3, mp3Program.programListItem.identifier);
+        return UrlHelper.makeMp3PlayUrl(mp3);
     }
 
     /**

@@ -102,16 +102,21 @@ public class Mp3ManagerAdapter extends BaseExpandableListAdapter {
         txt.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.name));
 
         TextView info = (TextView) convertView.findViewById(R.id.info);
-        info.setText(TW2CN.getInstance(context).toLocal(holder.programListItem.name));
+        String infoStr = program.recDate
+                + "("
+                + (program.mp3.equals("1") ? "音频" : "")
+                + (program.mp4.equals("1") ? "视频" : "")
+                + ")";
+        info.setText(TW2CN.getInstance(context).toLocal(infoStr));
 
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
 
         if(holder.dbRecId!=-1){ //未添加到数据库，即未被选择，选择的必定已经添加到了数据库
             checkBox.setChecked(true);
-            convertView.setBackgroundResource(R.color.bootstrap_brand_warning);
+            convertView.setBackgroundResource(R.color.tab_background);
         } else {
             checkBox.setChecked(false);
-            convertView.setBackgroundResource(R.color.bootstrap_gray_lightest);
+            convertView.setBackgroundResource(R.color.bw_background);
         }
 
         return convertView;

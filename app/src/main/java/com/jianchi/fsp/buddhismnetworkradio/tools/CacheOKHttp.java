@@ -59,7 +59,8 @@ public class CacheOKHttp {
 
         cacheControl = new CacheControl.Builder()
                 //.maxStale(1, TimeUnit.DAYS)
-                .maxStale(1, TimeUnit.HOURS)
+                .maxAge(2, TimeUnit.HOURS)
+                .maxStale(2, TimeUnit.HOURS)
                 .build();
         cacheControlPic = new CacheControl.Builder()
                 .maxStale(365, TimeUnit.DAYS)

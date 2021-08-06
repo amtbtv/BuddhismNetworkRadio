@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#009688</color>
-    <color name="colorPrimaryDark">#00796b</color>
-    <color name="colorAccent">#00BFA5</color>
+    <color name="colorPrimary">#997755</color>
+    <color name="colorPrimaryDark">#775533</color>
+    <color name="colorAccent">#eeccaa</color>
 
-    <color name="colorTitle">#FFFFFF</color>
-    <color name="videoMsg">#ffffff</color>
-    <color name="videoMsgBG">#55888888</color>
-    <color name="programTypeBG">#88CCCCCC</color>
-    <color name="videoBG">#000000</color>
     <color name="videoMenuBG">#22222222</color>
-    <color name="tab_background">#22009688</color>
+    <color name="tab_background">#66ccaa99</color>
+    <color name="bw_background">#f5f5f5</color>
 </resources>

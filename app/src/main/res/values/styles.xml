@@ -9,15 +9,24 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="AppTheme.Main" parent="AppTheme" />
-
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="TabTitleTextAppearance">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#000</item>
+    </style>
+
+    <style name="ProgressBarSmall">
+        <item name="minWidth">16dip</item>
+        <item name="maxWidth">16dip</item>
+        <item name="minHeight">16dip</item>
+        <item name="maxHeight">16dip</item>
+    </style>
+
+    <style name="item_title">
+        <item name="android:textSize">18sp</item>
+    </style>
 </resources>

@@ -2,20 +2,17 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
-import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.TW2CN;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
-
-import java.util.Locale;
 
 public class ScheduleActivity extends AppCompatActivity {
     BApplication app;
