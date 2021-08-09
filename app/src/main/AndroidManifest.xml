@@ -103,7 +103,7 @@
             tools:ignore="LockedOrientationActivity" />
         <meta-data
             android:name="PUSH_APPID"
-            android:value="t69HmLSYXQ9aN31cox89N8" />
+            android:value="mCUo9jLlyf9lshZQUI7GZ9" />
 
         <service
             android:name=".GeTuiIntentService"
