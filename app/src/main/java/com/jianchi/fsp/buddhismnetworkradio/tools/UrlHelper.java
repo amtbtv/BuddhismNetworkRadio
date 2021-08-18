@@ -28,6 +28,12 @@ public class UrlHelper {
     //最近视频，暂时先不使用此功能
     private static final String newMediasUrl = "https://amtbapi.amtb.de/amtbtv/newmedias/mp3?limit=20";
 
+    public static String FaYinMediaUrl = "https://www.amtb.tw/blog/wp-json/wp/v2/media/";
+    public static String FaYinJsonUrl = "https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=";
+
+    public static String WenHuaMediaUrl = "https://rsd.amtb.tw/wp-json/wp/v2/media/";
+    public static String WenHuaJsonUrl = "https://rsd.amtb.tw/wp-json/wp/v2/posts?&page=";
+
 
     //12-017-0019.mp3
     public static String makeMp3PlayUrl(String mp3) {
@@ -102,7 +108,11 @@ public class UrlHelper {
     }
 
     public static String getRsdNewsUrl(int pager, int per_page) {
-        return "https://rsd.amtb.tw/wp-json/wp/v2/posts?" + "&page=" + String.valueOf(pager) + "&per_page=" + String.valueOf(per_page);
+        return "https://rsd.amtb.tw/wp-json/wp/v2/posts?&page=" + String.valueOf(pager);
+    }
+
+    public static String getFaYinPageUrl(int faYinCurPageId) {
+        return "https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=" + String.valueOf(faYinCurPageId);
     }
 
     //图片地址

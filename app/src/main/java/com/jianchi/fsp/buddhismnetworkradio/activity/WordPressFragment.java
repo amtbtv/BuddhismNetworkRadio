@@ -26,7 +26,10 @@ import com.jianchi.fsp.buddhismnetworkradio.tools.FaYinApi;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FaYinFragment extends Fragment {
+public class WordPressFragment extends Fragment {
+
+    private String mediaUrl;
+    private String jsonUrl;
 
     RecyclerView rv_fayin; //法音宣流
     List<FaYin> faYinList = new ArrayList<>();//法音宣流数据
@@ -35,8 +38,13 @@ public class FaYinFragment extends Fragment {
 
     FaYinLoadMoreAdapter faYinLoadMoreAdapter;
     ProgressBar proBar;
-    public FaYinFragment() {
+    public WordPressFragment() {
         // Required empty public constructor
+    }
+
+    public WordPressFragment(String jsonUrl, String mediaUrl){
+        this.jsonUrl = jsonUrl;
+        this.mediaUrl = mediaUrl;
     }
 
     @Override
@@ -48,12 +56,12 @@ public class FaYinFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_fa_yin, container, false);
+        View view = inflater.inflate(R.layout.fragment_wordpress, container, false);
         proBar = view.findViewById(R.id.proBar);
         rv_fayin = view.findViewById(R.id.rv);
         rv_fayin.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
-        faYinLoadMoreAdapter = new FaYinLoadMoreAdapter(faYinList);
+        faYinLoadMoreAdapter = new FaYinLoadMoreAdapter(faYinList, mediaUrl);
         faYinLoadMoreAdapter.setOnItemClickListener(new FaYinOnClickListener() {
             @Override
             public void onClick(View v, FaYin faYin) {
@@ -102,7 +110,7 @@ public class FaYinFragment extends Fragment {
         faYinCurPageId++;
         //https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=1
         FaYinApi<FaYinListResult> api = new FaYinApi<>(
-                "https://www.amtb.tw/blog/wp-json/wp/v2/posts?page=" + faYinCurPageId,
+                jsonUrl + faYinCurPageId,
                 new AmtbApiCallBack<FaYinListResult>() {
                     @Override
                     public void callBack(FaYinListResult obj) {

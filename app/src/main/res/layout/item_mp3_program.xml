@@ -12,7 +12,7 @@
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:padding="8dp"
-        app:iiv_color="@android:color/holo_green_dark"
+        app:iiv_color="@color/holo_green_dark"
         app:iiv_icon="faw-chevron-right" />
 
     <LinearLayout
@@ -48,7 +48,7 @@
         android:layout_gravity="center"
         android:padding="1dp"
         android:text="{faw-music}"
-        android:textColor="@android:color/holo_green_dark"
+        android:textColor="@color/holo_green_dark"
         android:textSize="16sp" />
 
     <com.mikepenz.iconics.view.IconicsButton
@@ -58,7 +58,7 @@
         android:layout_gravity="center"
         android:padding="1dp"
         android:text="{faw-video}"
-        android:textColor="@android:color/holo_green_dark"
+        android:textColor="@color/holo_green_dark"
         android:textSize="16sp" />
 
 </LinearLayout>

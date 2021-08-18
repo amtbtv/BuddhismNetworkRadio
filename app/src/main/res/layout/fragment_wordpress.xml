@@ -3,18 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.WeiHuaFragment"
+    android:layout_gravity="center"
+    tools:context=".activity.WordPressFragment"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.jianchi.fsp.buddhismnetworkradio.LoadMoreListView
-            android:id="@+id/lv"
-            android:dividerHeight="1dp"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
+        </androidx.recyclerview.widget.RecyclerView>
 
         <ProgressBar
             android:id="@+id/proBar"

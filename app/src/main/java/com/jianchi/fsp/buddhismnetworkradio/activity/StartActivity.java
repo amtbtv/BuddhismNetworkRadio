@@ -16,6 +16,7 @@ import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.tools.SharedPreferencesHelper;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
+import com.jianchi.fsp.buddhismnetworkradio.tools.UrlHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +71,8 @@ public class StartActivity extends BaseActivity {
         fragments = new ArrayList<>();
         fragments.add(new LiveFragment());
         fragments.add(new ProgramFragment());
-        fragments.add(new FaYinFragment());
-        fragments.add(new WeiHuaFragment());
+        fragments.add(new WordPressFragment(UrlHelper.FaYinJsonUrl, UrlHelper.FaYinMediaUrl));
+        fragments.add(new WordPressFragment(UrlHelper.WenHuaJsonUrl, UrlHelper.WenHuaMediaUrl));
         mPagerAdapter.setTitles(titles);
         mPagerAdapter.setFragments(fragments);
         mViewPager.setAdapter(mPagerAdapter);

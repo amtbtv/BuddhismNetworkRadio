@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class FaYinLoadMoreAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private String mediaUrl;
     private List<FaYin> dataList;
 
     // 普通布局
@@ -56,8 +57,9 @@ public class FaYinLoadMoreAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.clickListener = faYinOnClickListener;
     }
 
-    public FaYinLoadMoreAdapter(List<FaYin> dataList){
+    public FaYinLoadMoreAdapter(List<FaYin> dataList, String mediaUrl){
         this.dataList = dataList;
+        this.mediaUrl = mediaUrl;
     }
 
     @Override
@@ -107,7 +109,7 @@ public class FaYinLoadMoreAdapter extends RecyclerView.Adapter<RecyclerView.View
         @Override
         protected String doInBackground(Integer... integers) {
             //https://www.amtb.tw/blog/wp-json/wp/v2/media/
-            String url = "https://www.amtb.tw/blog/wp-json/wp/v2/media/" + featured_media;
+            String url = mediaUrl + featured_media;
             try {
                 String json = BApplication.getInstance().http.take(url, "UTF-8");
                 ImageGuid imageGuid = new Gson().fromJson(json, ImageGuid.class);
