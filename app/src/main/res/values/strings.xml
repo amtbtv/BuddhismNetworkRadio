@@ -60,4 +60,5 @@
     <string name="down_mp4_choice">下载视频</string>
     <string name="down_type_dialog_title">请选择你要下载音频还是视频：</string>
     <string name="bt_label_whjy">文化</string>
+    <string name="recreate">繁简切换，重启生效。</string>
 </resources>

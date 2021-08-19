@@ -166,7 +166,8 @@ public class StartActivity extends BaseActivity {
                 BApplication.country = "ZH";
             new SharedPreferencesHelper(this, "setting").putString("local", BApplication.country);
             Tools.changeAppLanguage(this);
-            recreate();//刷新界面
+            //recreate();//刷新界面
+            Toast.makeText(StartActivity.this, R.string.recreate, Toast.LENGTH_LONG).show();
             return true;
         }
 
