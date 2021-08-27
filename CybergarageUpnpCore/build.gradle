@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        //applicationId "org.cybergarage"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName '2.1.1'
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    testImplementation 'junit:junit:4.13.2'
+    // https://mvnrepository.com/artifact/net.sf.kxml/kxml2
+    implementation 'net.sf.kxml:kxml2:2.3.0'
+    // https://mvnrepository.com/artifact/xerces/xercesImpl
+    implementation 'xerces:xercesImpl:2.12.1'
+
+}
