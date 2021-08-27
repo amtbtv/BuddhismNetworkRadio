@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.jianchi.fsp.buddhismnetworkradio">
-
-    <!-- - 横屏竖屏转化时用到 -->
+    <!-- - 隐藏状态栏 -->
     <application
         android:name=".BApplication"
         android:allowBackup="true"
@@ -15,13 +14,18 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activity.RenderTVActivity"
+            android:label="@string/title_activity_render_tv"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
             android:name=".activity.VideoPlayerActivity"
             android:hardwareAccelerated="true"
             android:label="@string/title_activity_video_player"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
-
         <activity
             android:name=".activity.Mp4PlayerActivity"
             android:icon="@mipmap/ic_launcher"
@@ -101,6 +105,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
+
         <meta-data
             android:name="PUSH_APPID"
             android:value="mCUo9jLlyf9lshZQUI7GZ9" />
@@ -108,7 +113,6 @@
         <service
             android:name=".GeTuiIntentService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
-
         <service
             android:name=".GeTuiPushService"
             android:exported="true"
@@ -118,8 +122,7 @@
             android:name=".mp3service.BMp3Service"
             android:enabled="true"
             android:exported="false" />
-    </application> <!-- - 隐藏状态栏 -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    </application>
     <uses-permission
         android:name="android.permission.CHANGE_CONFIGURATION"
         tools:ignore="ProtectedPermissions" /> <!-- 将报务设置为前台服务 -->
@@ -129,5 +132,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
 </manifest>

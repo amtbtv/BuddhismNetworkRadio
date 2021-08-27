@@ -2,8 +2,10 @@ package com.jianchi.fsp.buddhismnetworkradio.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,13 +19,20 @@ import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
 import com.jianchi.fsp.buddhismnetworkradio.BApplication;
 import com.jianchi.fsp.buddhismnetworkradio.R;
 import com.jianchi.fsp.buddhismnetworkradio.model.Live;
+import com.jianchi.fsp.buddhismnetworkradio.model.RenderTVItem;
 import com.jianchi.fsp.buddhismnetworkradio.tools.LanguageUtils;
 import com.jianchi.fsp.buddhismnetworkradio.tools.MyLog;
 import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 import com.jianchi.fsp.buddhismnetworkradio.video.VideoMenuManager;
+import com.mikepenz.iconics.IconicsColor;
+import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.iconics.IconicsSizeDp;
+import com.mikepenz.iconics.typeface.library.fontawesome.FontAwesome;
+import com.mikepenz.iconics.view.IconicsImageView;
 
 import java.util.Locale;
 
@@ -38,15 +47,13 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 播放按扭
      */
-    private ImageButton bt_play;
-
-    private ImageButton bt_full_screen;
+    private IconicsImageView bt_play;
+    private IconicsImageView bt_render_tv;
 
     /**
      * 加载视频动画
      */
     ProgressBar proBar;
-    int proBarThreadId = 0;
 
     /**
      * 管理播放器周边按扭的类
@@ -93,6 +100,16 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= 21) {
+            View decorView = getWindow().getDecorView();
+            int option = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            decorView.setSystemUiVisibility(option);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+
         //获取自定义APP，APP内存在着数据，若为旋转屏幕，此处记录以前的内容
         app = (BApplication)getApplication();
 
@@ -121,9 +138,10 @@ public class MainActivity extends AppCompatActivity {
             menuManager=new VideoMenuManager(MainActivity.this, videoView_bottom);//, videoView_top
 
             //按放按扭
-            bt_play = (ImageButton) findViewById(R.id.bt_play);
+            bt_play = findViewById(R.id.bt_play);
+            bt_render_tv = findViewById(R.id.bt_render_tv);
             bt_play.setOnClickListener(bt_playOnClickListener);
-
+            bt_render_tv.setOnClickListener(bt_render_tvOnClickListener);
             /*
             bt_full_screen = (ImageButton) findViewById(R.id.bt_full_screen);
             bt_full_screen.setOnClickListener(new View.OnClickListener() {
@@ -325,13 +343,22 @@ extra 	int: an extra code, specific to the error. Typically implementation depen
     View.OnTouchListener videoViewOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (menuManager.menuVisible) {
-                if(videoView.isPlaying())
-                    menuManager.hideMenu();
-            } else {
-                menuManager.displayMenu(true);
-            }
+            menuManager.displayMenu(true);
             return false;
+        }
+    };
+
+    View.OnClickListener bt_render_tvOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            RenderTVItem item = new RenderTVItem();
+            item.type = "live";
+            item.mediaUrl = channel.mediaUrl;
+            item.name = channel.name;
+            Intent intent = new Intent(MainActivity.this, RenderTVActivity.class);
+            intent.putExtra("RenderTVItem", new Gson().toJson(item));
+            startActivity(intent);
+            finish();
         }
     };
 
@@ -349,15 +376,11 @@ extra 	int: an extra code, specific to the error. Typically implementation depen
     //有三种情况会用到该函数：启动时、由打电话等其它APP影响恢复时、主动播放
     private void playVideo() {
         //让播放按扭延迟隐藏
-        if (menuManager.menuVisible)
-            menuManager.delayHide();//已经在显示了，只需要重置显示时间就可以了
-        else
-            menuManager.displayMenu(true);//显示菜单
+        menuManager.displayMenu(true);//显示菜单
 
         videoView.setVideoURI(Uri.parse(channel.mediaUrl));
         videoView.start();
-
-        bt_play.setImageResource(R.mipmap.ic_stop);//设置按扭图标为暂停
+        bt_play.setIcon(new IconicsDrawable(this, FontAwesome.Icon.faw_pause).color(IconicsColor.colorInt(Color.WHITE)).size(new IconicsSizeDp(24)));
         proBar.setVisibility(View.VISIBLE);
     }
 
@@ -367,14 +390,9 @@ extra 	int: an extra code, specific to the error. Typically implementation depen
             videoView.stopPlayback();
         } catch (Exception e) {
         }
-
         //让播放按扭一直显示
-        if (menuManager.menuVisible)
-            menuManager.alwaysShow();
-        else
-            menuManager.displayMenu(false);
-
-        bt_play.setImageResource(R.mipmap.ic_play);
+        menuManager.displayMenu(false);
+        bt_play.setIcon(new IconicsDrawable(this, FontAwesome.Icon.faw_play).color(IconicsColor.colorInt(Color.WHITE)).size(new IconicsSizeDp(24)));
         videoView.setBackgroundResource(R.drawable.zcgt);
     }
 }

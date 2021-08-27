@@ -41,7 +41,8 @@ public class VideoMenuManager {
                 }
                 if (menuVisible && hideMenuTime>=0) {
                     hideMenuTime++;
-                    if (hideMenuTime>50) {
+                    if (hideMenuTime>60) {
+                        hideMenuTime = 0;
                         hideMenu();
                     }
                 }
@@ -71,7 +72,8 @@ public class VideoMenuManager {
             hideMenuTime=0;
         else
             hideMenuTime=-1;
-        show();
+        if(!menuVisible)
+            show();
     }
 
     public void hideMenu(){
@@ -84,6 +86,7 @@ public class VideoMenuManager {
      */
     private void show(){
         menuVisible = true;
+        videoView_bottom.bringToFront();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

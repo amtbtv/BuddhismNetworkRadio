@@ -15,6 +15,7 @@ import com.jianchi.fsp.buddhismnetworkradio.tools.Tools;
 public abstract class BaseActivity extends AppCompatActivity {
 
     BApplication app;//全局应用
+    Toolbar toolbar;
 
     abstract int getContentView();
     abstract void onCreateDo();
@@ -30,7 +31,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(getContentView());
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         //获取自定义APP，APP内存在着数据，若为旋转屏幕，此处记录以前的内容

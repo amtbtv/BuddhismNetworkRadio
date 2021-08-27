@@ -61,4 +61,7 @@
     <string name="down_type_dialog_title">请选择你要下载音频还是视频：</string>
     <string name="bt_label_whjy">文化</string>
     <string name="recreate">繁简切换，重启生效。</string>
+    <string name="title_activity_render_tv">投屏</string>
+    <string name="not_fond_tv">未找到可投放的电视</string>
+    <string name="wait_upnp">查找可投屏的设备</string>
 </resources>
