@@ -108,6 +108,7 @@ public class VideoMenuManager {
                     public void onAnimationEnd(Animation animation) {
                         //videoView_top.setVisibility(View.VISIBLE);
                         videoView_bottom.setVisibility(View.VISIBLE);
+                        videoView_bottom.bringToFront();
                     }
 
                     @Override

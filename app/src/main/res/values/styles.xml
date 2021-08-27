@@ -29,4 +29,9 @@
     <style name="item_title">
         <item name="android:textSize">18sp</item>
     </style>
+
+    <style name="Widget.AppTheme.MyView" parent="">
+        <item name="android:background">@color/gray_400</item>
+        <item name="exampleColor">@color/light_blue_400</item>
+    </style>
 </resources>

@@ -23,46 +23,14 @@
             app:layout_constraintTop_toBottomOf="parent"
             app:layout_constraintVertical_bias="1.0" />
 
-        <RelativeLayout
+        <com.jianchi.fsp.buddhismnetworkradio.activity.AmtbMediaController
             android:id="@+id/videoView_bottom"
             android:layout_width="match_parent"
             android:layout_height="72dp"
             android:contextClickable="true"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_margin="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_centerVertical="true"
-                android:background="@drawable/media_controller_bg"
-                android:gravity="center_vertical"
-                android:padding="8dp">
-
-                <com.mikepenz.iconics.view.IconicsImageView
-                    android:id="@+id/bt_play"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:padding="8dp"
-                    app:iiv_color="@color/white"
-                    app:iiv_icon="faw-play"
-                    app:iiv_size="36dp" />
-
-                <com.mikepenz.iconics.view.IconicsImageView
-                    android:id="@+id/bt_render_tv"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center"
-                    app:iiv_color="@color/white"
-                    app:iiv_icon="faw-share"
-                    app:iiv_size="24dp" />
-            </LinearLayout>
-        </RelativeLayout>
+        </com.jianchi.fsp.buddhismnetworkradio.activity.AmtbMediaController>
 
         <ProgressBar
             android:id="@+id/progressBar"

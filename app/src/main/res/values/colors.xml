@@ -4,7 +4,7 @@
     <color name="colorPrimaryDark">#775533</color>
     <color name="colorAccent">#eeccaa</color>
 
-    <color name="videoMenuBG">#22222222</color>
+    <color name="videoMenuBG">#99000000</color>
     <color name="tab_background">#66ccaa99</color>
     <color name="bw_background">#f5f5f5</color>
 
@@ -16,4 +16,8 @@
     <color name="transparent">#00000000</color>
     <color name="background_dark">#ff000000</color>
     <color name="background_light">#ffffffff</color>
+    <color name="light_blue_400">#FF29B6F6</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="gray_400">#FFBDBDBD</color>
+    <color name="gray_600">#FF757575</color>
 </resources>
