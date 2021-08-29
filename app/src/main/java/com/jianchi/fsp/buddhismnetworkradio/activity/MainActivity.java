@@ -174,15 +174,9 @@ public class MainActivity extends AppCompatActivity {
             item.name = channel.name;
             Intent intent = new Intent(MainActivity.this, RenderTVActivity.class);
             intent.putExtra("RenderTVItem", new Gson().toJson(item));
-            //startActivity(intent);
-            //finish();
+            startActivity(intent);
+            finish();
 
-            Log.v(TAG, "videoView.canPause:" + String.valueOf(videoView.canPause()));
-            Log.v(TAG, "videoView.canSeekBackward:" + String.valueOf(videoView.canSeekBackward()));
-            Log.v(TAG, "videoView.canSeekForward:" + String.valueOf(videoView.canSeekForward()));
-            Log.v(TAG, "videoView.getDuration:" + String.valueOf(videoView.getDuration()));
-            Log.v(TAG, "videoView.getCurrentPosition:" + String.valueOf(videoView.getCurrentPosition()));
-            Log.v(TAG, "videoView.getBufferPercentage:" + String.valueOf(videoView.getBufferPercentage()));
         }
     };
 

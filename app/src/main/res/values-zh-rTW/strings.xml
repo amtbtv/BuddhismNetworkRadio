@@ -64,4 +64,13 @@
     <string name="title_activity_render_tv">投屏</string>
     <string name="not_fond_tv">未找到可投放的電視</string>
     <string name="wait_upnp">查找可投屏的設備</string>
+    <string name="transport">缓冲</string>
+    <string name="wait">等待</string>
+    <string name="stoped">已停止</string>
+    <string name="recording">錄製</string>
+    <string name="paused_recording">錄製暫停</string>
+    <string name="paused_playback">暫停</string>
+    <string name="no_media">視頻未找到</string>
+    <string name="no_render">未投屏</string>
+    <string name="render_err">投屏出错</string>
 </resources>

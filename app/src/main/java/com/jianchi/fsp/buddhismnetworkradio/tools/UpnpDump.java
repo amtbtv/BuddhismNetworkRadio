@@ -18,60 +18,95 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UpnpDump extends ControlPoint implements NotifyListener, EventListener, SearchResponseListener {
+    private static final String AVTransport1 = "urn:schemas-upnp-org:service:AVTransport:1";
 
-    public enum StateEnum
-    {
-        //添加枚举的指定常量
-        INVALID_ACTION(UPnPStatus.INVALID_ACTION),
-        INVALID_ARGS(UPnPStatus.INVALID_ARGS),
-        OUT_OF_SYNC(UPnPStatus.OUT_OF_SYNC),
-        INVALID_VAR(UPnPStatus.INVALID_VAR),
-        PRECONDITION_FAILED(UPnPStatus.PRECONDITION_FAILED),
-        ACTION_FAILED(UPnPStatus.ACTION_FAILED),
-        SUCESS(200),
-        UNKNOW(0);
 
-        //必须增加一个构造函数,变量,得到该变量的值
-        private int  mState=0;
-        private StateEnum(int value)
-        {
-            mState=value;
+    private TransportState formatTransportState(String value) {
+        if ("STOPPED".equals(value)) {
+            return TransportState.STATE_STOPPED;
         }
-        /**
-         * @return 枚举变量实际返回值
-         */
-        public static StateEnum getState(int v)
-        {
-            switch (v) {
-                case UPnPStatus.INVALID_ACTION: return INVALID_ACTION;
-                case UPnPStatus.INVALID_ARGS: return INVALID_ARGS;
-                case UPnPStatus.OUT_OF_SYNC: return OUT_OF_SYNC;
-                case UPnPStatus.INVALID_VAR: return INVALID_VAR;
-                case UPnPStatus.PRECONDITION_FAILED: return PRECONDITION_FAILED;
-                case UPnPStatus.ACTION_FAILED: return ACTION_FAILED;
-                case 200: return SUCESS;
-                default: {
-                    StateEnum e = SUCESS;
-                    e.mState = v;
-                    return e;
-                }
-            }
+        if ("PLAYING".equals(value)) {
+            return TransportState.STATE_PLAYING;
+        }
+        if ("TRANSITIONING".equals(value)) {
+            return TransportState.STATE_TRANSITIONING;
+        }
+        if ("PAUSED_PLAYBACK".equals(value)) {
+            return TransportState.STATE_PAUSED_PLAYBACK;
+        }
+        if ("PAUSED_RECORDING".equals(value)) {
+            return TransportState.STATE_PAUSED_RECORDING;
+        }
+        if ("RECORDING".equals(value)) {
+            return TransportState.STATE_RECORDING;
+        }
+        if ("NO_MEDIA_PRESENT".equals(value)) {
+            return TransportState.STATE_NO_MEDIA_PRESENT;
+        }
+        return TransportState.STATE_ERR;
+    }
+
+    public synchronized TransportState getTransportStateSync(Device device) {
+        Service localService = device.getService(AVTransport1);
+        if (localService == null) {
+            return formatTransportState(null);
         }
 
-        @NonNull
-        @Override
-        public String toString() {
-            switch (mState) {
-                case UPnPStatus.INVALID_ACTION: return "Invalid Action";
-                case UPnPStatus.INVALID_ARGS: return "Invalid Args";
-                case UPnPStatus.OUT_OF_SYNC: return "Out of Sync";
-                case UPnPStatus.INVALID_VAR: return "Invalid Var";
-                case UPnPStatus.PRECONDITION_FAILED: return "Precondition Failed";
-                case UPnPStatus.ACTION_FAILED: return "Action Failed";
-                case 200: return "Sucess";
-                default: return HTTPStatus.code2String(mState);
-            }
+        final Action localAction = localService.getAction("GetTransportInfo");
+        if (localAction == null) {
+            return formatTransportState(null);
         }
+
+        localAction.setArgumentValue("InstanceID", "0");
+
+        if (localAction.postControlAction()) {
+            String value = localAction.getArgumentValue("CurrentTransportState");
+            System.out.println("current state:" + value);
+            return formatTransportState(localAction.getArgumentValue("CurrentTransportState"));
+        } else {
+            return formatTransportState(null);
+        }
+    }
+
+    public synchronized String getPositionInfoSync(Device device) {
+        Service localService = device.getService(AVTransport1);
+
+        if (localService == null)
+            return null;
+
+        final Action localAction = localService.getAction("GetPositionInfo");
+        if (localAction == null) {
+            return null;
+        }
+
+        localAction.setArgumentValue("InstanceID", "0");
+        boolean isSuccess = localAction.postControlAction();
+        if (isSuccess) {
+            return localAction.getArgumentValue("AbsTime");
+        } else {
+            return null;
+        }
+    }
+
+
+    private synchronized String getMediaDurationSync(Device device) {
+        Service localService = device.getService(AVTransport1);
+        if (localService == null) {
+            return null;
+        }
+
+        final Action localAction = localService.getAction("GetMediaInfo");
+        if (localAction == null) {
+            return null;
+        }
+
+        localAction.setArgumentValue("InstanceID", "0");
+        if (localAction.postControlAction()) {
+            return localAction.getArgumentValue("MediaDuration");
+        } else {
+            return null;
+        }
+
     }
 
     public List<Device> getTvDeviceList() {
@@ -129,21 +164,22 @@ public class UpnpDump extends ControlPoint implements NotifyListener, EventListe
         System.out.println("event notify : uuid = " + uuid + ", seq = " + seq + ", name = " + name + ", value =" + value);
     }
 
-    public void stop(Device device, String instanceID){
-        Service avTransService = device.getService("urn:schemas-upnp-org:service:AVTransport:1");
-        if(avTransService==null) return;
+    public synchronized boolean stop(Device device, String instanceID){
+        Service avTransService = device.getService(AVTransport1);
+        if(avTransService==null) return false;
         Action action = avTransService.getAction("Stop");
-        if(action==null) return;
+        if(action==null) return false;
         action.setArgumentValue("InstanceID", instanceID);
-        action.postControlAction();
+        return action.postControlAction();
     }
 
-    public StateEnum play(String mp4Url, Device device, String instanceID){
+    public synchronized StateEnum play(String mp4Url, Device device, String instanceID){
         stop(device, instanceID);
         // 获取服务
-        Service service = device.getService("urn:schemas-upnp-org:service:AVTransport:1");
+        Service service = device.getService(AVTransport1);
         // 获取动作
-        Action transportAction = service.getAction("SetAVTransportURI");
+        Action transportAction = service.getAction( "SetAVTransportURI");
+
         // 设置参数
         transportAction.setArgumentValue("InstanceID", instanceID);
         transportAction.setArgumentValue("CurrentURI", mp4Url);
@@ -164,6 +200,4 @@ public class UpnpDump extends ControlPoint implements NotifyListener, EventListe
             return StateEnum.getState(transportAction.getStatus().getCode());
         }
     }
-
-
 }
